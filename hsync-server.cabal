@@ -43,6 +43,7 @@ library
                     HSync.Server.Handler.Auth
                     HSync.Server.Handler.FileActions
                     HSync.Server.Handler.ViewTree
+                    HSync.Server.Handler.ManualUpload
 
 
 

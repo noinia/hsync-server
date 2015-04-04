@@ -155,6 +155,10 @@ instance Yesod HSyncServer where
     isAuthorized (PutFileR _ p) _ = requireWrite p
     isAuthorized (PutDirR _ p)  _ = requireWrite p
 
+    isAuthorized (WebPutFileR p) _ = requireWrite p
+    isAuthorized (WebPutDirR p)  _ = requireWrite p
+
+
     -- Viewing the tree and the state requires read access
     isAuthorized (ViewTreeR p)  _ = requireRead p
     isAuthorized (ViewStateR p) _ = requireRead p

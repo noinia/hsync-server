@@ -23,6 +23,7 @@ import HSync.Server.Handler.Home
 import HSync.Server.Handler.Auth
 import HSync.Server.Handler.FileActions
 import HSync.Server.Handler.ViewTree
+import HSync.Server.Handler.ManualUpload
 
 import Network.HTTP.Conduit (newManager, conduitManagerSettings)
 import Network.Wai.Logger (clockDateCacher)

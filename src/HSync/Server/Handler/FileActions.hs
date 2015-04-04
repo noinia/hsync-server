@@ -4,7 +4,7 @@ import           HSync.Server.Import
 
 
 import           Data.Aeson(encode)
-import           Control.Monad.Trans.Resource(runResourceT)
+import           Control.Monad.Trans.Resource(runResourceT, ResourceT)
 import           Data.Conduit
 import           Data.Conduit.Binary
 import qualified Data.Conduit.List as C
@@ -94,14 +94,20 @@ postPutFileR fi            p = do
                                  -- transPipe lifts the underlying monad of
                                  -- bodySource' that is, the IO monad, into
                                  -- something more general; i.e. MonadIO m
-                                 atomicallyWriteR p $ putFile' bodySource
-    where
-      putFile' s fp = protectedByFI fi fp "putFile" $ do
+                                 atomicallyWriteR p $ putFile fi p bodySource
+
+
+-- | The code that actually puts the file
+putFile           :: FileIdent -- ^ old file ident
+                  -> Path      -- ^ path to put the file to
+                  -> Source (ResourceT IO) ByteString -- ^ The file contents
+                  -> FilePath  -- ^ filepath corresponding to fp
+                  -> Handler (Either ErrorDescription Notification)
+putFile fi p s fp = protectedByFI fi fp "putFile" $ do
                            liftIO . runResourceT $ s $$ sinkFile fp
                            addFIHeader p
                            notification (determineEvent fi p)
-
-
+  where
       determineEvent NonExistent = fileAdded
       determineEvent (File _)    = flip fileUpdated fi
       determineEvent _           = error "putFile: unknown event."

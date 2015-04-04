@@ -3,10 +3,6 @@
 
 <div .container>
 
-  ^{putDirWidget}
-
-  ^{putFileWidget}
-
   <h3>Subdirectories
 
   <ul>

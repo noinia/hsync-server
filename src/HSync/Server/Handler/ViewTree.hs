@@ -17,6 +17,7 @@ import           HSync.Server.User
 import           HSync.Server.AcidSync(QueryFSState(..))
 
 import           HSync.Server.Handler.FileActions(getTreeOf,getFileR)
+import           HSync.Server.Handler.ManualUpload(webPutDir, webPutFile)
 
 
 import qualified Data.List as L
@@ -27,9 +28,23 @@ import qualified Data.Map as M
 -- | Get the MTimeTree directly from the files directory
 getViewTreeR   :: Path -> Handler TypedContent
 getViewTreeR p = getTreeOf p >>= \case
-    Nothing -> getFileR p -- if p is not a dir, then it is either a file or nothing
-                          -- Let the the getFileR handler distinguish between them.
-    Just t  -> fmap toTypedContent . defaultLayout . displayDir ViewTreeR p . unTree $ t
+    Nothing           -> getFileR p
+                         -- if p is not a dir, then it is either a file or nothing
+                         -- Let the the getFileR handler distinguish between them.
+    Just (FSTree dir) -> do
+                           putFileWidget <- webPutFile p
+                           putDirWidget  <- webPutDir  p
+                           let dirInfo = $(widgetFile "dirInfo")
+                               r       = ViewTreeR
+
+                               route   :: IsFileOrDirectory t => t x y -> Route HSyncServer
+                               route x =  r  (p { subPath = subPath p ++ [name x]} )
+                                          -- append the name to the path
+
+                           fmap toTypedContent . defaultLayout $
+                              $(widgetFile "viewDirectory")
+
+
 
 -- | Get the MTimeTree by reading the FSState.
 getViewStateR   :: Path -> Handler Html
@@ -69,8 +84,10 @@ displayDir         :: (Show m, Show a)
                    -> Path  -- ^ Path to the directory we are displaying
                    -> Directory m a
                    -> Widget
-displayDir r p dir = $(widgetFile "viewDirectory")
+displayDir r p dir = $(widgetFile "viewDirectoryState")
   where
+    dirInfo = $(widgetFile "dirInfo")
+
     route   :: IsFileOrDirectory t => t x y -> Route HSyncServer
     route x = r (p { subPath = subPath p ++ [name x]} )
               -- append the name to the path
