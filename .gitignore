@@ -6,5 +6,10 @@ yesod-devel/
 files/
 config/keter.yaml
 deploy/
-notificationlog.log
+notifications.log
 state/
+.cabal-sandbox
+static/combined
+*~
+*#
+cabal.sandbox.config
