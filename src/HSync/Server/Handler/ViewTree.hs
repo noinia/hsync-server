@@ -11,13 +11,12 @@ import           HSync.Server.Import hiding (fileName)
 
 -- import           Text.Blaze(ToMarkup(..))
 
-import           HSync.Server.FileSystemState
 import           HSync.Server.AcidState
-import           HSync.Server.User
 import           HSync.Server.AcidSync(QueryFSState(..))
-
+import           HSync.Server.FileSystemState
 import           HSync.Server.Handler.FileActions(getTreeOf,getFileR)
 import           HSync.Server.Handler.ManualUpload(webPutDir, webPutFile)
+import           HSync.Server.User
 
 
 import qualified Data.List as L
@@ -32,6 +31,7 @@ getViewTreeR p = getTreeOf p >>= \case
                          -- if p is not a dir, then it is either a file or nothing
                          -- Let the the getFileR handler distinguish between them.
     Just (FSTree dir) -> do
+                           liftIO $ print dir
                            putFileWidget <- webPutFile p
                            putDirWidget  <- webPutDir  p
                            let dirInfo = $(widgetFile "dirInfo")
