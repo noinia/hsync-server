@@ -79,16 +79,16 @@ postPutFileR fi            p = do
                                  -- bodySource' that is, the IO monad, into
                                  -- something more general; i.e. MonadIO m
                                  ci <- clientId
-                                 atomicallyWriteR p $ putFile ci fi p bodySource
+                                 putFile ci fi p bodySource
 
 -- | See `postPutFileR`.
 putFile           :: ClientIdent -- ^ ClientId of the client putting the file
                   -> FileIdent -- ^ old file ident
                   -> Path      -- ^ path to put the file to
                   -> Source (ResourceT IO) ByteString -- ^ The file contents
-                  -> FilePath  -- ^ filepath corresponding to fp
-                  -> Handler (Either ErrorDescription Notification)
-putFile ci fi p s fp = protectedByFI fi fp "putFile" $ do
+                  -> Handler Text
+putFile ci fi p s = atomicallyWriteR p $ \fp ->
+                      protectedByFI fi fp "putFile" $ do
                            liftIO . runResourceT $ s $$ sinkFile fp
                            addFIHeader p
                            notification ci (determineEvent fi p)

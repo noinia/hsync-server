@@ -31,7 +31,6 @@ getViewTreeR p = getTreeOf p >>= \case
                          -- if p is not a dir, then it is either a file or nothing
                          -- Let the the getFileR handler distinguish between them.
     Just (FSTree dir) -> do
-                           liftIO $ print dir
                            putFileWidget <- webPutFile p
                            putDirWidget  <- webPutDir  p
                            let dirInfo = $(widgetFile "dirInfo")
@@ -49,7 +48,7 @@ getViewTreeR p = getTreeOf p >>= \case
 -- | Get the MTimeTree by reading the FSState.
 getViewStateR   :: Path -> Handler Html
 getViewStateR p = queryDirectory p >>= \case
-    Left err        -> defaultLayout $ [whamlet| err |]
+    Left err        -> defaultLayout $ [whamlet| #{err} |]
     Right (Left f)  -> defaultLayout $ displayFile ViewStateR p f
     Right (Right d) -> defaultLayout $ displayDir  ViewStateR p d
 

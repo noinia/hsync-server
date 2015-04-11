@@ -51,6 +51,7 @@ fileNameField = checkBool isValidFileName msg textField
     msg = "Invalid filename" :: Text
 
 -- | Check if a filename is valid
+isValidFileName :: Text -> Bool
 isValidFileName = T.all isValidChar
   where
                       -- note that in particular / is not a valid char, hence
@@ -62,7 +63,8 @@ isValidFileName = T.all isValidChar
 -- * Putting a file
 
 
--- | Upload a file from the webiste.
+-- | Upload a file from the webiste. If the file with this path already exist
+-- it will be replaced.
 postWebPutFileR        :: Path -> Handler Html
 postWebPutFileR parent@(Path u sp) = do
     ((result,_), _) <- runFormPost addFileForm
@@ -71,13 +73,8 @@ postWebPutFileR parent@(Path u sp) = do
                              let p  = Path u (sp ++ [fileName fInfo])
                                  ci = webClientIdent
                              fi   <- getFileIdent p
-                             fp   <- asLocalPath p
-                             eNot <- putFile ci fi p (fileSourceRaw fInfo) fp
-                             case eNot of
-                               Left err -> setMessage $
-                                             "Error saving file:" <> toHtml (show err)
-                               Right _  -> setMessage "File saved."
-                             setMessage "File st"
+                             t <- putFile ci fi p (fileSourceRaw fInfo)
+                             setMessage $ toHtml t
       FormFailure errs -> let e = mconcat $ map toHtml errs
                           in setMessage $  "Error. Could not add file: " <> e
     redirect $ ViewTreeR parent
