@@ -122,7 +122,7 @@ instance Yesod HSyncServer where
                 $(combineStylesheets 'StaticR [ css_bootstrap_css --  css_normalize_css
                                               ])
                 $(widgetFile "default-layout")
-        giveUrlRenderer $(hamletFile "templates/default-layout-wrapper.hamlet")
+        withUrlRenderer $(hamletFile "templates/default-layout-wrapper.hamlet")
 
     -- This is done to provide an optimization for serving static files from
     -- a separate domain. Please see the staticRoot setting in Settings.hs
@@ -208,9 +208,10 @@ instance Yesod HSyncServer where
     maximumContentLength _ (Just r)
                      | postsBigFile r = Nothing
                    where
-                     postsBigFile (PatchR _ _)   = True
-                     postsBigFile (PutFileR _ _) = True
-                     postsBigFile _              = False
+                     postsBigFile (PatchR _ _)    = True
+                     postsBigFile (PutFileR _ _)  = True
+                     postsBigFile (WebPutFileR _) = True
+                     postsBigFile _               = False
     maximumContentLength _ _          = Just $ 2 * 1024 * 1024 -- 2 megabytes
 
 
