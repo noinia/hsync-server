@@ -16,8 +16,6 @@ import           HSync.Server.AcidSync(QueryFSState(..))
 import           HSync.Server.FileSystemState
 import           HSync.Server.Handler.FileActions(getTreeOf,getFileR)
 import           HSync.Server.Handler.ManualUpload(webPutDir, webPutFile)
-import           HSync.Server.User
-
 
 import qualified Data.List as L
 import qualified Data.Map as M
