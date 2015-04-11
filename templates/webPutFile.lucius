@@ -1,24 +1,24 @@
-.putDir {
+.putFile {
 
 }
 
-.putDir label {
+.putFile label {
     display: none;
 }
 
-.putDir .required {
+.putFile .required {
     clear: none;
     display: block;
     float: left;
     width: 70%;
 }
 
-.putDir input {
-    margin-top: 2px;
+.putFile input {
+    margin-top: 5px;
     width: 100%;
 }
 
-.putDir button {
+.putFile button {
     clear: none;
     display: block;
     float: right;

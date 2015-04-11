@@ -3,9 +3,11 @@
 
 <div .container>
 
-  ^{putDirWidget}
-
-  ^{putFileWidget}
+  <div .panel .row>
+    <div .col-md-6>
+      ^{putDirWidget}
+    <div .col-md-6>
+      ^{putFileWidget}
 
   <h3>Subdirectories
 
