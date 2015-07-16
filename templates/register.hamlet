@@ -1,0 +1,8 @@
+<div class="container cleantop">
+
+  <h1>Register new User
+
+  <form method=post action=@{tp registerR} enctype=#{enctype}>
+    ^{widget}
+
+    <button type="submit" class="btn btn-success">Register

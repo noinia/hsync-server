@@ -1,6 +1,6 @@
-module Handler.Home where
+module HSync.Server.Handler.Home where
 
-import Import
+import HSync.Server.Import
 import Yesod.Form.Bootstrap3 (BootstrapFormLayout (..), renderBootstrap3,
                               withSmallInput)
 

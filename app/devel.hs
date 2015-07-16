@@ -1,5 +1,5 @@
 {-# LANGUAGE PackageImports #-}
-import "hsync-server" Application (develMain)
+import "hsync-server" HSync.Server.Application (develMain)
 import Prelude (IO)
 
 main :: IO ()

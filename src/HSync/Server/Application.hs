@@ -1,5 +1,5 @@
 {-# OPTIONS_GHC -fno-warn-orphans #-}
-module Application
+module HSync.Server.Application
     ( getApplicationDev
     , appMain
     , develMain
@@ -15,7 +15,7 @@ module Application
 import Control.Monad.Logger                 (liftLoc, runLoggingT)
 import Database.Persist.Sqlite              (createSqlitePool, runSqlPool,
                                              sqlDatabase, sqlPoolSize)
-import Import
+import HSync.Server.Import
 import Language.Haskell.TH.Syntax           (qLocation)
 import Network.Wai.Handler.Warp             (Settings, defaultSettings,
                                              defaultShouldDisplayException,
@@ -30,8 +30,8 @@ import System.Log.FastLogger                (defaultBufSize, newStdoutLoggerSet,
 
 -- Import all relevant handler modules here.
 -- Don't forget to add new modules to your cabal file!
-import Handler.Common
-import Handler.Home
+import HSync.Server.Handler.Common
+import HSync.Server.Handler.Home
 
 -- This line actually creates our YesodDispatch instance. It is the second half
 -- of the call to mkYesodData which occurs in Foundation.hs. Please see the

@@ -1,4 +1,4 @@
-module Model where
+module HSync.Server.Model where
 
 import ClassyPrelude.Yesod
 import Database.Persist.Quasi

@@ -1,5 +1,5 @@
 import Prelude     (IO)
-import Application (appMain)
+import HSync.Server.Application (appMain)
 
 main :: IO ()
 main = appMain

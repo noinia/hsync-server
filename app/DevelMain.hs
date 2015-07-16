@@ -31,7 +31,7 @@
 module DevelMain where
 
 import Prelude
-import Application (getApplicationRepl, shutdownApp)
+import HSync.Server.Application (getApplicationRepl, shutdownApp)
 
 import Control.Exception (finally)
 import Control.Monad ((>=>))
