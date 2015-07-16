@@ -1,0 +1,2 @@
+database:
+  database: hsync-server_test.sqlite3
