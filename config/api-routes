@@ -1,0 +1,27 @@
+/login                            MyLoginR        POST
+
+
+/listen/now/*Path                 ListenNowR      GET
+/listen/from/#UTCTime/*Path       ListenR         GET
+
+/tree/*Path                       TreeR           GET
+/file/*Path                       FileR           GET
+
+/store/directory/*Path            CreateDirR      POST
+/store/file/#Signature/*Path      StoreFileR      POST
+
+/delete/directory/*Path           DeleteDirR      DELETE
+/delete/file/#Signature/*Path     DeleteFileR     DELETE
+
+
+
+
+
+
+
+
+/                                 HomeR           GET
+
+
+/favicon.ico                      FaviconR        GET
+/robots.txt                       RobotsR         GET
