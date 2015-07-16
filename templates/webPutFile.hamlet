@@ -1,4 +1,0 @@
-<div .putFile>
-  <form method=post action=@{WebPutFileR parent} enctype=#{enctype}>
-    ^{widget}
-    <button type="submit" .btn .btn-success>Upload File

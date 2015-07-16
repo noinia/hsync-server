@@ -1,8 +1,0 @@
-.path li {
-    display: inline;
-    list-style-type: none;
-}
-
-.path li:after {
-    content: '/';
-}
