@@ -1,5 +1,6 @@
 module HSync.Common.User where
 
+import Data.Data(Data,Typeable)
 import ClassyPrelude.Yesod
 import HSync.Common.Types
 import HSync.Common.Realm
@@ -15,7 +16,7 @@ import Text.Read(reads)
 data Client = Client { _clientId   :: ClientId
                      , _clientName :: ClientName
                      }
-              deriving (Show,Read,Eq,Ord)
+              deriving (Show,Read,Eq,Ord,Typeable)
 $(deriveSafeCopy 0 'base ''Client)
 
 
@@ -26,7 +27,7 @@ data User = User { _userId   :: UserId
                  , _clients  :: Set (Client)
                  , _realms   :: Set (AccessPoint)
                  }
-            deriving (Show,Read,Eq,Ord)
+            deriving (Show,Read,Eq,Ord,Typeable)
 $(deriveSafeCopy 0 'base ''User)
 
 

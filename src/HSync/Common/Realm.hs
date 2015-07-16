@@ -111,6 +111,6 @@ updateAccessPolicyAt (Path p) f lm = ST.updateAt p (&accessPolicy %~ f) parentDa
 data AccessPoint = AccessPoint { _accessPointRealm :: RealmId
                                , _accessPointPath  :: Path
                                }
-                 deriving (Show,Read,Eq,Ord)
+                 deriving (Show,Read,Eq,Ord,Typeable)
 makeLenses ''AccessPoint
 $(deriveSafeCopy 0 'base ''AccessPoint)

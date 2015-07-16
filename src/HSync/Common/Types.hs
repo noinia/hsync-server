@@ -23,12 +23,12 @@ type ErrorMessage = Text
 --------------------------------------------------------------------------------
 
 newtype FileName = FileName Text
-                   deriving (Show,Read,Eq,Ord,IsString,ToMarkup,PathPiece)
+                   deriving (Show,Read,Eq,Ord,IsString,ToMarkup,PathPiece,Typeable)
 $(deriveSafeCopy 0 'base ''FileName)
 
 
 newtype Path = Path [FileName]
-               deriving (Show,Read,Eq,Ord)
+               deriving (Show,Read,Eq,Ord,Typeable)
 $(deriveSafeCopy 0 'base ''Path)
 
 instance PathMultiPiece Path where
@@ -39,11 +39,11 @@ instance PathMultiPiece Path where
 
 
 newtype ClientId = ClientId Integer
-                   deriving (Show,Read,Eq,Ord,ToMarkup)
+                   deriving (Show,Read,Eq,Ord,ToMarkup,Typeable)
 $(deriveSafeCopy 0 'base ''ClientId)
 
 newtype ClientName = ClientName Text
-                      deriving (Show,Read,Eq,Ord,ToMarkup)
+                      deriving (Show,Read,Eq,Ord,ToMarkup,Typeable)
 $(deriveSafeCopy 0 'base ''ClientName)
 
 
@@ -51,11 +51,11 @@ $(deriveSafeCopy 0 'base ''ClientName)
 
 
 newtype RealmId = RealmId Integer
-                deriving (Show,Read,Eq,Ord,ToMarkup)
+                deriving (Show,Read,Eq,Ord,ToMarkup,Typeable)
 $(deriveSafeCopy 0 'base ''RealmId)
 
 newtype RealmName = RealmName Text
-                  deriving (Show,Read,Eq,Ord,ToMarkup)
+                  deriving (Show,Read,Eq,Ord,ToMarkup,Typeable)
 $(deriveSafeCopy 0 'base ''RealmName)
 
 --------------------------------------------------------------------------------
@@ -64,13 +64,13 @@ $(deriveSafeCopy 0 'base ''RealmName)
 
 
 newtype UserId = UserId { _unUserId :: Integer }
-                 deriving (Show,Read,Eq,Ord,ToMarkup)
+                 deriving (Show,Read,Eq,Ord,ToMarkup,Typeable)
 $(deriveSafeCopy 0 'base ''UserId)
 
 
 
 newtype UserName = UserName { _unUserName :: Text  }
-                      deriving (Show,Read,Eq,Ord,ToMarkup)
+                      deriving (Show,Read,Eq,Ord,ToMarkup,Typeable)
 $(deriveSafeCopy 0 'base ''UserName)
 
 instance PathPiece UserName where
@@ -87,7 +87,7 @@ userNameChar = isAlphaNum
 
 
 newtype RealName = RealName { _unRealName :: Text }
-                 deriving (Show,Read,Eq,Ord,ToMarkup)
+                 deriving (Show,Read,Eq,Ord,ToMarkup,Typeable)
 $(deriveSafeCopy 0 'base ''RealName)
 -- $(deriveJSON defaultOptions ''RealName)
 
@@ -95,7 +95,7 @@ $(deriveSafeCopy 0 'base ''RealName)
 
 newtype Password = Password { unPassword :: Text }
                     deriving (Show,Read,Eq,Ord,
-                              PathPiece,FromJSON,ToJSON)
+                              PathPiece,FromJSON,ToJSON,Typeable)
 $(deriveSafeCopy 0 'base ''Password)
 
 

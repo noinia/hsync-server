@@ -19,14 +19,14 @@ library
                      HSync.Server.Import
                      HSync.Server.Import.NoFoundation
                      HSync.Server.LocalAuth
-                     HSync.Server.Model
                      HSync.Server.Settings
                      HSync.Server.Settings.StaticFiles
                      HSync.Server.User
 
-
                      HSync.Server.Handler.Common
                      HSync.Server.Handler.Home
+                     HSync.Server.Handler.ManualUpload
+                     HSync.Server.Handler.ViewTree
 
                      HSync.Common.AcidState
                      HSync.Common.AccessPolicy
@@ -35,7 +35,6 @@ library
                      HSync.Common.StorageTree
                      HSync.Common.Types
                      HSync.Common.User
-
 
     if flag(dev) || flag(library-only)
         cpp-options:   -DDEVELOPMENT
@@ -56,6 +55,7 @@ library
                 EmptyDataDecls
                 NoMonomorphismRestriction
                 DeriveDataTypeable
+                AutoDeriveTypeable
                 ViewPatterns
                 TupleSections
                 RecordWildCards
@@ -71,9 +71,9 @@ library
                  , classy-prelude-yesod          >= 0.10.2
                  , bytestring                    >= 0.9        && < 0.11
                  , text                          >= 0.11       && < 2.0
-                 , persistent                    >= 2.0        && < 2.2
-                 , persistent-sqlite             >= 2.1.1      && < 2.2
-                 , persistent-template           >= 2.0        && < 2.2
+                 -- , persistent                    >= 2.0        && < 2.2
+                 -- , persistent-sqlite             >= 2.1.1      && < 2.2
+                 -- , persistent-template           >= 2.0        && < 2.2
                  , template-haskell
                  , shakespeare                   >= 2.0        && < 2.1
                  , hjsmin                        >= 0.1        && < 0.2

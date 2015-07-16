@@ -21,9 +21,9 @@ import Data.Acid
 
 
 
-data AcidServer = AcidServer { _realms :: AcidState (M.Map RealmId Realm)
-                             , _users  :: AcidState U.UserIndex
-                             }
+data Acids = Acids { _realms :: AcidState (M.Map RealmId Realm)
+                   , _users  :: AcidState U.UserIndex
+                   }
 
 
 queryUserIndex :: Query U.UserIndex U.UserIndex

@@ -3,7 +3,7 @@ module HSync.Server.Import.NoFoundation
     ) where
 
 import ClassyPrelude.Yesod   as Import
-import HSync.Server.Model                 as Import
+-- import HSync.Server.Model                 as Import
 import HSync.Server.Settings              as Import
 import HSync.Server.Settings.StaticFiles  as Import
 import Yesod.Auth            as Import

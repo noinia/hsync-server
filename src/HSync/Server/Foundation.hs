@@ -1,7 +1,8 @@
+{-# LANGUAGE FlexibleInstances #-}
 module HSync.Server.Foundation where
 
 import HSync.Server.Import.NoFoundation
-import Database.Persist.Sql (ConnectionPool, runSqlPool)
+-- import Database.Persist.Sql (ConnectionPool, runSqlPool)
 import Text.Hamlet          (hamletFile)
 import Text.Jasmine         (minifym)
 import Yesod.Auth.BrowserId (authBrowserId)
@@ -9,6 +10,13 @@ import Yesod.Auth.Message   (AuthMessage (InvalidLogin))
 import Yesod.Default.Util   (addStaticContentExternal)
 import Yesod.Core.Types     (Logger)
 import qualified Yesod.Core.Unsafe as Unsafe
+
+import HSync.Common.Types
+import HSync.Common.User
+import HSync.Server.User
+import HSync.Server.LocalAuth
+import HSync.Server.AcidState
+import HSync.Common.AcidState
 
 
 -- | The foundation datatype for your application. This can be a good place to
@@ -18,10 +26,17 @@ import qualified Yesod.Core.Unsafe as Unsafe
 data App = App
     { appSettings    :: AppSettings
     , appStatic      :: Static -- ^ Settings for static file serving.
-    , appConnPool    :: ConnectionPool -- ^ Database connection pool.
+    -- , appConnPool    :: ConnectionPool -- ^ Database connection pool.
+    , appAcidState   :: Acids
     , appHttpManager :: Manager
     , appLogger      :: Logger
     }
+
+getStatic = appStatic
+
+getAcidSync :: HandlerT App IO Acids
+getAcidSync = appAcidState <$> getYesod
+
 
 instance HasHttpManager App where
     getHttpManager = appHttpManager
@@ -108,17 +123,30 @@ instance Yesod App where
 
     makeLogger = return . appLogger
 
--- How to run database actions.
-instance YesodPersist App where
-    type YesodPersistBackend App = SqlBackend
-    runDB action = do
-        master <- getYesod
-        runSqlPool action $ appConnPool master
-instance YesodPersistRunner App where
-    getDBRunner = defaultGetDBRunner appConnPool
+
+-- How to access the stuff that we store using acid state
+-- instance HasAcidState (HandlerT App IO)  where
+--   getAcidState = fsState <$> getAcidSync
+
+instance HasAcidState (HandlerT App IO) UserIndex where
+  getAcidState = _users <$> getAcidSync
+
+
+-- -- How to run database actions.
+-- instance YesodPersist App where
+--     type YesodPersistBackend App = SqlBackend
+--     runDB action = do
+--         master <- getYesod
+--         runSqlPool action $ appConnPool master
+-- instance YesodPersistRunner App where
+--     getDBRunner = defaultGetDBRunner appConnPool
+
+instance YesodLocalAuth App where
+  onRegister _ = return ()
+
 
 instance YesodAuth App where
-    type AuthId App = UserId
+    type AuthId App = User
 
     -- Where to send a user after successful login
     loginDest _ = HomeR
@@ -127,18 +155,23 @@ instance YesodAuth App where
     -- Override the above two destinations when a Referer: header is present
     redirectToReferer _ = True
 
-    authenticate creds = runDB $ do
-        x <- getBy $ UniqueUser $ credsIdent creds
-        return $ case x of
-            Just (Entity uid _) -> Authenticated uid
-            Nothing -> UserError InvalidLogin
+
+
+    authenticate creds = case userName . credsIdent $ creds of
+                           Left _   -> return $ UserError InvalidLogin
+                           Right ui -> return $ Authenticated undefined
+                                 -- TODO      `(queryAcid $ LookupUser ui)
+
+    maybeAuthId = do
+      m <- lookupSession credsKey
+      return $ m >>= fromPathPiece
 
     -- You can add other plugins like BrowserID, email or OAuth here
-    authPlugins _ = [authBrowserId def]
+    authPlugins _ = [localAuth]
 
     authHttpManager = getHttpManager
 
-instance YesodAuthPersist App
+-- instance YesodAuthPersist App
 
 -- This instance is required to use forms. You can modify renderMessage to
 -- achieve customized and internationalized form validation messages.
