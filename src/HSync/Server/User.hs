@@ -1,49 +1,23 @@
 {-# OPTIONS_GHC -fno-warn-orphans #-}
 module HSync.Server.User where
 
-import Prelude
+import qualified Data.Set as S
 
-import Data.Aeson.TH
+import ClassyPrelude.Yesod hiding (Update, Query, get)
+import Control.Lens hiding (Indexable)
+import HSync.Common.AcidState
+import HSync.Common.Types                    as Import
+import HSync.Common.User                     as Import
 import Data.Default
 import Data.IxSet
-import Data.SafeCopy(base, deriveSafeCopy)
-import Data.Text(Text, pack, unpack)
-
-import HSync.Common.Types
-import HSync.Common.User
-import Text.Blaze
-import Yesod.Core
-
+import Control.Monad.State.Class
+import Control.Monad.Reader.Class
 import qualified Data.IxSet as I
-
---------------------------------------------------------------------------------
-
--- newtype RealName = RealName { unRealName :: Text }
---                  deriving (Show,Read,Eq,Ord,Data,Typeable)
--- $(deriveSafeCopy 0 'base ''RealName)
--- $(deriveJSON defaultOptions ''RealName)
-
--- instance ToMarkup RealName where
---   toMarkup           = toMarkup           . unRealName
---   preEscapedToMarkup = preEscapedToMarkup . unRealName
-
-
--- instance ToMarkup UserIdent where
---   toMarkup           = toMarkup           . unUI
---   preEscapedToMarkup = preEscapedToMarkup . unUI
+import Data.Acid( Query(..), Update(..), makeAcidic)
+import Data.SafeCopy(base, deriveSafeCopy)
 
 
 --------------------------------------------------------------------------------
-
--- data ServerUser = User { userId   :: UserIdent
---                        , realName :: RealName
---                        , password :: HashedPassword
---                        }
---                 deriving (Show,Read,Eq,Ord,Data,Typeable)
-
--- $(deriveSafeCopy 0 'base ''User)
-
-
 
 instance Indexable User where
   empty = ixSet [ ixFun $ \u -> [ _userId u ]
@@ -52,19 +26,62 @@ instance Indexable User where
 
 --------------------------------------------------------------------------------
 
--- | Users have a unique userId
-newtype UserIndex = UserIndex { unUIdx :: IxSet User }
+-- | Users have a unique userId and a unique username
+data UserIndex = UserIndex { _userList   :: IxSet User
+                           , _nextUserId :: UserId
+                           }
                   deriving (Show,Read,Eq)
 $(deriveSafeCopy 0 'base ''UserIndex)
+makeLenses ''UserIndex
 
 instance Default UserIndex where
-  def = UserIndex I.empty
+  def = UserIndex I.empty (UserId 1)
 
 
-insertUser                    :: User -> UserIndex -> Either ErrorMessage UserIndex
-insertUser u ui@(UserIndex s) = case lookupUser (_userName u) ui of
-  Nothing -> Right $ UserIndex (I.insert u s)
-  Just _  -> Left    "Username already taken."
+data RegisterUser = RegisterUser { reqUserName     :: UserName
+                                 , reqRealName     :: RealName
+                                 , reqHashedPasswd :: HashedPassword
+                                 }
+$(deriveSafeCopy 0 'base ''RegisterUser)
 
-lookupUser                  :: UserName -> UserIndex -> Maybe User
-lookupUser ui (UserIndex s) = I.getOne $ s @= ui
+
+--------------------------------------------------------------------------------
+-- * Acidic Operations
+
+queryUserIndex :: Query UserIndex UserIndex
+queryUserIndex = ask
+
+lookupUserByName    :: UserName -> Query UserIndex (Maybe User)
+lookupUserByName ui = lookupUserByName' ui <$> ask
+
+insertUser    :: RegisterUser
+              -> Update UserIndex (Either ErrorMessage (User,UserIndex))
+insertUser ru = do
+                  idx <- get
+                  case lookupUserByName' (reqUserName ru) idx of
+                    Just _  -> return $ Left "Username already taken."
+                    Nothing -> let (u,idx') = insertUser' ru idx
+                               in do put idx' ; return $ Right (u,idx')
+
+--------------------------------------------------------------------------------
+
+insertUser' :: RegisterUser -> UserIndex -> (User,UserIndex)
+insertUser' (RegisterUser n r hpw) (UserIndex idx ui@(UserId i)) =
+  (u, UserIndex (I.insert u idx) (UserId $ i+1))
+    where
+      u = User ui n r hpw mempty mempty
+
+
+lookupUserByName'                  :: UserName -> UserIndex -> Maybe User
+lookupUserByName' ui (UserIndex s _) = I.getOne $ s @= ui
+
+lookupUserById'                  :: UserId -> UserIndex -> Maybe User
+lookupUserById' ui (UserIndex s _) = I.getOne $ s @= ui
+
+
+--------------------------------------------------------------------------------
+
+$(makeAcidic ''UserIndex [ 'queryUserIndex
+                         , 'lookupUserByName
+                         , 'insertUser
+                         ])

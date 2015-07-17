@@ -2,15 +2,13 @@
 module HSync.Server.Foundation where
 
 import HSync.Server.Import.NoFoundation
--- import Database.Persist.Sql (ConnectionPool, runSqlPool)
 import Text.Hamlet          (hamletFile)
 import Text.Jasmine         (minifym)
-import Yesod.Auth.BrowserId (authBrowserId)
 import Yesod.Auth.Message   (AuthMessage (InvalidLogin))
 import Yesod.Default.Util   (addStaticContentExternal)
 import Yesod.Core.Types     (Logger)
 import qualified Yesod.Core.Unsafe as Unsafe
-
+import Control.Lens
 import HSync.Common.Types
 import HSync.Common.User
 import HSync.Server.User
@@ -26,16 +24,15 @@ import HSync.Common.AcidState
 data App = App
     { appSettings    :: AppSettings
     , appStatic      :: Static -- ^ Settings for static file serving.
-    -- , appConnPool    :: ConnectionPool -- ^ Database connection pool.
-    , appAcidState   :: Acids
+    , appAcids       :: Acids
     , appHttpManager :: Manager
     , appLogger      :: Logger
     }
 
 getStatic = appStatic
 
-getAcidSync :: HandlerT App IO Acids
-getAcidSync = appAcidState <$> getYesod
+getAcids :: HandlerT App IO Acids
+getAcids = appAcids <$> getYesod
 
 
 instance HasHttpManager App where
@@ -147,21 +144,13 @@ instance Yesod App where
 
 
 -- How to access the stuff that we store using acid state
+
 -- instance HasAcidState (HandlerT App IO)  where
---   getAcidState = fsState <$> getAcidSync
+--   getAcidState = fsState <$> getAcids
 
 instance HasAcidState (HandlerT App IO) UserIndex where
-  getAcidState = _users <$> getAcidSync
+  getAcidState = _users <$> getAcids
 
-
--- -- How to run database actions.
--- instance YesodPersist App where
---     type YesodPersistBackend App = SqlBackend
---     runDB action = do
---         master <- getYesod
---         runSqlPool action $ appConnPool master
--- instance YesodPersistRunner App where
---     getDBRunner = defaultGetDBRunner appConnPool
 
 instance YesodLocalAuth App where
   onRegister _ = return ()
@@ -179,10 +168,9 @@ instance YesodAuth App where
 
 
 
-    authenticate creds = case userName . credsIdent $ creds of
+    authenticate creds = case validateUserName . credsIdent $ creds of
                            Left _   -> return $ UserError InvalidLogin
-                           Right ui -> return $ Authenticated undefined
-                                 -- TODO      `(queryAcid $ LookupUser ui)
+                           Right un -> lookupUser un
 
     maybeAuthId = do
       m <- lookupSession credsKey
@@ -192,6 +180,10 @@ instance YesodAuth App where
     authPlugins _ = [localAuth]
 
     authHttpManager = getHttpManager
+
+lookupUser    :: UserName -> HandlerT App IO (AuthenticationResult App)
+lookupUser un = maybe (UserError InvalidLogin) Authenticated
+             <$> queryAcid (LookupUserByName un)
 
 -- instance YesodAuthPersist App
 

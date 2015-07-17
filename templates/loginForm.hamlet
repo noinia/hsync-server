@@ -2,7 +2,7 @@
   action="@{loginR'}">
 
   <div class="form-group">
-    <input type="text" name="userIdent" placeholder="Username" class="form-control">
+    <input type="text" name="userName" placeholder="Username" class="form-control">
 
   <div class="form-group">
     <input type="password" name="password" placeholder="Password" class="form-control">

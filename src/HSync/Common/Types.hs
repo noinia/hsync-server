@@ -5,7 +5,7 @@ import ClassyPrelude.Yesod
 import Data.SafeCopy(base, deriveSafeCopy)
 import Text.Blaze(ToMarkup(..))
 import Data.SafeCopy(SafeCopy(..))
-
+import Control.Lens
 import qualified Crypto.Hash
 import qualified Data.Text as T
 import qualified Data.ByteString.Char8 as B
@@ -66,45 +66,49 @@ $(deriveSafeCopy 0 'base ''RealmName)
 newtype UserId = UserId { _unUserId :: Integer }
                  deriving (Show,Read,Eq,Ord,ToMarkup,Typeable)
 $(deriveSafeCopy 0 'base ''UserId)
-
+makeLenses ''UserId
 
 
 newtype UserName = UserName { _unUserName :: Text  }
                       deriving (Show,Read,Eq,Ord,ToMarkup,Typeable)
 $(deriveSafeCopy 0 'base ''UserName)
+makeLenses ''UserName
 
 instance PathPiece UserName where
   toPathPiece   = _unUserName
-  fromPathPiece = either (const Nothing) Just . userName
+  fromPathPiece = either (const Nothing) Just . validateUserName
 
 
-userName   :: Text -> Either ErrorMessage UserName
-userName t
+validateUserName   :: Text -> Either ErrorMessage UserName
+validateUserName t
   | T.all userNameChar t = Right $ UserName t
   | otherwise            = Left "Invalid UserName. Only alphanumeric characters allowed."
 
+userNameChar :: Char -> Bool
 userNameChar = isAlphaNum
 
 
 newtype RealName = RealName { _unRealName :: Text }
                  deriving (Show,Read,Eq,Ord,ToMarkup,Typeable)
 $(deriveSafeCopy 0 'base ''RealName)
+makeLenses ''RealName
 -- $(deriveJSON defaultOptions ''RealName)
 
 --------------------------------------------------------------------------------
 
-newtype Password = Password { unPassword :: Text }
+newtype Password = Password { _unPassword :: Text }
                     deriving (Show,Read,Eq,Ord,
                               PathPiece,FromJSON,ToJSON,Typeable)
 $(deriveSafeCopy 0 'base ''Password)
+makeLenses ''Password
 
 
 
-newtype HashedPassword = HashedPassword { unHashedPassword :: Text }
+newtype HashedPassword = HashedPassword { _unHashedPassword :: Text }
                     deriving (Show,Read,Eq,Ord,
                               PathPiece,FromJSON,ToJSON)
 $(deriveSafeCopy 0 'base ''HashedPassword)
-
+makeLenses ''HashedPassword
 
 sha1 :: ByteString -> Crypto.Hash.Digest Crypto.Hash.SHA1
 sha1 = Crypto.Hash.hash
@@ -112,8 +116,8 @@ sha1 = Crypto.Hash.hash
 hash' :: Text -> Text
 hash' = T.pack . show . sha1 . B.pack . T.unpack
 
-hashedPassword :: Password -> HashedPassword
-hashedPassword = HashedPassword . hash' . unPassword
+hashPassword :: Password -> HashedPassword
+hashPassword = HashedPassword . hash' . _unPassword
 
 --------------------------------------------------------------------------------
 

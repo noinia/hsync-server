@@ -22,6 +22,7 @@ library
                      HSync.Server.Settings
                      HSync.Server.Settings.StaticFiles
                      HSync.Server.User
+                     HSync.Server.Realm
 
                      HSync.Server.Handler.Common
                      HSync.Server.Handler.Home

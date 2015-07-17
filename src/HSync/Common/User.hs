@@ -8,6 +8,7 @@ import HSync.Common.AccessPolicy
 import Data.Set(Set)
 import Data.SafeCopy(base, deriveSafeCopy)
 import Text.Read(reads)
+import Control.Lens
 
 --------------------------------------------------------------------------------
 
@@ -18,6 +19,7 @@ data Client = Client { _clientId   :: ClientId
                      }
               deriving (Show,Read,Eq,Ord,Typeable)
 $(deriveSafeCopy 0 'base ''Client)
+makeLenses ''Client
 
 
 data User = User { _userId   :: UserId
@@ -29,7 +31,7 @@ data User = User { _userId   :: UserId
                  }
             deriving (Show,Read,Eq,Ord,Typeable)
 $(deriveSafeCopy 0 'base ''User)
-
+makeLenses ''User
 
 -- Give a better instance here
 instance PathPiece User where

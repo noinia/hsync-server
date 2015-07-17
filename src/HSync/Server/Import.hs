@@ -4,3 +4,9 @@ module HSync.Server.Import
 
 import HSync.Server.Foundation               as Import
 import HSync.Server.Import.NoFoundation      as Import
+import HSync.Common.Types                    as Import
+import HSync.Common.User                     as Import
+import HSync.Common.Realm                    as Import
+import HSync.Common.FileVersion              as Import
+import HSync.Common.AcidState                as Import
+import HSync.Common.AccessPolicy             as Import

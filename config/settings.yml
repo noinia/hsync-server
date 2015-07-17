@@ -17,9 +17,5 @@ ip-from-header: "_env:IP_FROM_HEADER:false"
 # mutable-static: false
 # skip-combining: false
 
-database:
-  database: "_env:SQLITE_DATABASE:hsync-server.sqlite3"
-  poolsize: "_env:SQLITE_POOLSIZE:10"
-
 copyright: Insert copyright statement here
 #analytics: UA-YOURCODE

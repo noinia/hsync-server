@@ -1,21 +1,16 @@
 {-# LANGUAGE ConstraintKinds #-}
+{-# LANGUAGE LambdaCase #-}
 module HSync.Server.LocalAuth where
 
 import Prelude
-
-import Control.Applicative
-
-
-
 import Data.Acid(EventState)
 import Data.Maybe
-
+import Control.Lens
 import HSync.Common.Types
 import HSync.Common.AcidState
-import HSync.Server.AcidState
 import HSync.Server.Settings(widgetFile)
-import HSync.Server.User
 import HSync.Common.User
+import HSync.Server.User
 
 import Yesod
 import Yesod.Auth
@@ -31,15 +26,15 @@ type AcidMonad m e = (Functor m, MonadIO m, HasAcidState m (EventState e))
 
 -- | Given a (user,password) in plaintext, validate them against the
 --   database values
-validateUser       :: AcidMonad m LookupUser
+validateUser       :: AcidMonad m LookupUserByName
                    => UserName -> HashedPassword -> m Bool
-validateUser ui pw = maybe False checkPassword <$> queryAcid (LookupUser ui)
+validateUser ui pw = maybe False checkPassword <$> queryAcid (LookupUserByName ui)
   where
     checkPassword u = pw == password u
 
 
-userExists   :: AcidMonad m LookupUser => UserName -> m Bool
-userExists u = isJust <$> queryAcid (LookupUser u)
+userExists   :: AcidMonad m LookupUserByName => UserName -> m Bool
+userExists u = isJust <$> queryAcid (LookupUserByName u)
 
 
 --------------------------------------------------------------------------------
@@ -60,7 +55,7 @@ loginR    = PluginR "local" ["login"]
 registerR = PluginR "local" ["register"]
 
 
-localAuth :: ( AcidMonad (HandlerT master IO) LookupUser
+localAuth :: ( AcidMonad (HandlerT master IO) LookupUserByName
              , YesodLocalAuth master
              , AuthId master ~ User
              )
@@ -97,7 +92,7 @@ $newline never
 
 postLoginR :: ( RenderMessage master FormMessage
               , YesodAuth master
-              , AcidMonad (HandlerT master IO) LookupUser
+              , AcidMonad (HandlerT master IO) LookupUserByName
               )
            => HandlerT Auth (HandlerT master IO) TypedContent
 postLoginR = do
@@ -108,9 +103,9 @@ postLoginR = do
     if b then validUser   u
          else invalidUser
   where
-    hPassword = hashedPassword . Password
+    hPassword = hashPassword . Password
 
-    validUser u = lift $  setCredsRedirect $ Creds "local" (_unUserName u) []
+    validUser u = lift $  setCredsRedirect $ Creds "local" (u^.unUserName) []
     invalidUser = loginErrorMessageI LoginR Msg.InvalidUsernamePass
 
 
@@ -151,18 +146,11 @@ tryInsert :: ( RenderMessage master FormMessage
              , AcidMonad (HandlerT master IO) InsertUser
              )
              => RegisterUser -> Route master -> HandlerT master IO TypedContent
-tryInsert (RegisterUser un rn hpw) redir = do
-    let u = User (UserId 0) un rn hpw mempty mempty
-            -- TODO: The userId and the Realm
-    me <- updateAcid (InsertUser u)
-    case me of
-      Nothing  -> do
-                    onRegister u
-                    setCredsRedirect $ Creds "local" (_unUserName un) []
-      Just err -> loginErrorMessage redir err
-
-
-data RegisterUser = RegisterUser UserName RealName HashedPassword
+tryInsert ru redir = updateAcid (InsertUser ru) >>= \case
+      Left err    -> loginErrorMessage redir err
+      Right (u,_) -> do
+                       onRegister u
+                       setCredsRedirect $ Creds "local" (u^.userName.unUserName) []
 
 
 registerForm :: (RenderMessage (HandlerSite m) FormMessage, MonadHandler m)
@@ -172,11 +160,11 @@ registerForm = renderDivs $ do mkUser
                         <*> areq textField     "realName" Nothing
                         <*> areq passwordField "password" Nothing
   where
-    mkUser n rn p = RegisterUser n (RealName rn) (hashedPassword $ Password p)
+    mkUser n rn p = RegisterUser n (RealName rn) (hashPassword $ Password p)
 
 --------------------------------------------------------------------------------
 -- | Helper stuff
 
 userNameField :: (RenderMessage (HandlerSite m) FormMessage, Monad m)
             => Field m UserName
-userNameField = checkMMap (return . userName) _unUserName textField
+userNameField = checkMMap (return . validateUserName) _unUserName textField

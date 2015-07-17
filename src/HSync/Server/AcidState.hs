@@ -1,48 +1,33 @@
 module HSync.Server.AcidState where
 
-import Prelude
-import Control.Monad.State.Class
-import Control.Monad.Reader.Class
-import HSync.Common.AcidState
-import HSync.Common.Realm
-import HSync.Common.Types
-import HSync.Common.User(User)
-import qualified HSync.Server.User as U
 
-import qualified Data.Map as M
+import Prelude
+import Control.Monad.Trans.Control (MonadBaseControl)
+import Control.Monad.Trans(MonadIO(..))
+import Data.Default
+import HSync.Common.AcidState
+import HSync.Common.Types
+import HSync.Server.User
+import HSync.Server.Realm
+import Data.Acid(AcidState(..))
 
 --------------------------------------------------------------------------------
 
-import Data.Acid
-    ( AcidState(..), EventState(..), EventResult(..)
-    , Query(..), QueryEvent(..), Update(..), UpdateEvent(..)
-    , IsAcidic(..), makeAcidic, openLocalState
-    )
 
 
 
-data Acids = Acids { _realms :: AcidState (M.Map RealmId Realm)
-                   , _users  :: AcidState U.UserIndex
+data Acids = Acids { _realms :: AcidState Realms
+                   , _users  :: AcidState UserIndex
                    }
 
 
-queryUserIndex :: Query U.UserIndex U.UserIndex
-queryUserIndex = ask
-
-lookupUser    :: UserName -> Query U.UserIndex (Maybe User)
-lookupUser ui = U.lookupUser ui <$> ask
-
-insertUser   :: User -> Update U.UserIndex (Maybe ErrorMessage)
-insertUser u = do
-                 eix <- U.insertUser u <$> get
-                 case eix of
-                   Left err -> return $ Just err
-                   Right ix -> put ix >> return Nothing
+-- instance Default Acids where
+--   def = Acids def def
 
 
-
-
-$(makeAcidic ''U.UserIndex [ 'queryUserIndex
-                           , 'lookupUser
-                           , 'insertUser
-                           ])
+withAcids            :: ( MonadBaseControl IO m
+                        , MonadIO m
+                        ) => Maybe FilePath -> (Acids -> m a) -> m a
+withAcids stateDir f = withAcidState stateDir def $ \realms ->
+                         withAcidState stateDir def $ \users ->
+                           f (Acids realms users)

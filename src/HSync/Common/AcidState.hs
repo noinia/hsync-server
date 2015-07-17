@@ -56,7 +56,7 @@ updateAcid event = do as <- getAcidState
 -- | bracket the opening and close of the `AcidState` handle.
 
 -- automatically creates a checkpoint on close
-withLocalState
+withAcidState
   :: ( MonadBaseControl IO m
      , MonadIO m
      , IsAcidic st
@@ -67,7 +67,7 @@ withLocalState
   -> (AcidState st -> m a) -- ^ function which uses the
                            --   `AcidState` handle
   -> m a
-withLocalState mPath initialState =
+withAcidState mPath initialState =
   bracket (liftIO $ open initialState)
           (liftIO . createCheckpointAndClose)
   where
