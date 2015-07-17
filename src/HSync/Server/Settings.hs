@@ -6,6 +6,7 @@
 module HSync.Server.Settings where
 
 import HSync.Common.Types
+import Control.Lens
 import ClassyPrelude.Yesod
 import Control.Exception           (throw)
 import Data.Aeson                  (Result (..), fromJSON, withObject, (.!=),
@@ -23,41 +24,36 @@ import Yesod.Default.Util          (WidgetFileSettings, widgetFileNoReload,
 -- loaded from various sources: defaults, environment variables, config files,
 -- theoretically even a database.
 data AppSettings = AppSettings
-    { appStaticDir              :: String
+    { _appStaticDir              :: String
     -- ^ Directory from which to serve static files.
     -- , appDatabaseConf           :: SqliteConf
     -- ^ Configuration settings for accessing the database.
-    , appRoot                   :: Text
+    , _appRoot                   :: Text
     -- ^ Base for all generated URLs.
-    , appHost                   :: HostPreference
+    , _appHost                   :: HostPreference
     -- ^ Host/interface the server should bind to.
-    , appPort                   :: Int
+    , _appPort                   :: Int
     -- ^ Port to listen on
-    , appIpFromHeader           :: Bool
+    , _appIpFromHeader           :: Bool
     -- ^ Get the IP address from the header when logging. Useful when sitting
     -- behind a reverse proxy.
 
       -- Path with acid state stuff
-    , appAcidStatePath          :: Maybe FilePath
+    , _appAcidStatePath          :: Maybe FilePath
 
 
-    , appDetailedRequestLogging :: Bool
+    , _appDetailedRequestLogging :: Bool
     -- ^ Use detailed request logging system
-    , appShouldLogAll           :: Bool
+    , _appShouldLogAll           :: Bool
     -- ^ Should all log messages be displayed?
-    , appReloadTemplates        :: Bool
+    , _appReloadTemplates        :: Bool
     -- ^ Use the reload version of templates
-    , appMutableStatic          :: Bool
+    , _appMutableStatic          :: Bool
     -- ^ Assume that files in the static dir may change after compilation
-    , appSkipCombining          :: Bool
+    , _appSkipCombining          :: Bool
     -- ^ Perform no stylesheet/script combining
-
-    -- Example app-specific configuration values.
-    , appCopyright              :: Text
-    -- ^ Copyright text to appear in the footer of the page
-    , appAnalytics              :: Maybe Text
-    -- ^ Google Analytics code
     }
+makeLenses ''AppSettings
 
 instance FromJSON AppSettings where
     parseJSON = withObject "AppSettings" $ \o -> do
@@ -67,22 +63,19 @@ instance FromJSON AppSettings where
 #else
                 False
 #endif
-        appStaticDir              <- o .: "static-dir"
+        _appStaticDir              <- o .: "static-dir"
         -- appDatabaseConf           <- o .: "database"
-        appRoot                   <- o .: "approot"
-        appHost                   <- fromString <$> o .: "host"
-        appPort                   <- o .: "port"
-        appIpFromHeader           <- o .: "ip-from-header"
-        appAcidStatePath          <- o .:? "acid-state-path"
+        _appRoot                   <- o .: "approot"
+        _appHost                   <- fromString <$> o .: "host"
+        _appPort                   <- o .: "port"
+        _appIpFromHeader           <- o .: "ip-from-header"
+        _appAcidStatePath          <- o .:? "acid-state-path"
 
-        appDetailedRequestLogging <- o .:? "detailed-logging" .!= defaultDev
-        appShouldLogAll           <- o .:? "should-log-all"   .!= defaultDev
-        appReloadTemplates        <- o .:? "reload-templates" .!= defaultDev
-        appMutableStatic          <- o .:? "mutable-static"   .!= defaultDev
-        appSkipCombining          <- o .:? "skip-combining"   .!= defaultDev
-
-        appCopyright              <- o .: "copyright"
-        appAnalytics              <- o .:? "analytics"
+        _appDetailedRequestLogging <- o .:? "detailed-logging" .!= defaultDev
+        _appShouldLogAll           <- o .:? "should-log-all"   .!= defaultDev
+        _appReloadTemplates        <- o .:? "reload-templates" .!= defaultDev
+        _appMutableStatic          <- o .:? "mutable-static"   .!= defaultDev
+        _appSkipCombining          <- o .:? "skip-combining"   .!= defaultDev
 
         return AppSettings {..}
 
@@ -103,7 +96,7 @@ combineSettings = def
 -- user.
 
 widgetFile :: String -> Q Exp
-widgetFile = (if appReloadTemplates compileTimeAppSettings
+widgetFile = (if compileTimeAppSettings^.appReloadTemplates
                 then widgetFileReload
                 else widgetFileNoReload)
               widgetFileSettings
@@ -131,12 +124,12 @@ compileTimeAppSettings =
 
 combineStylesheets :: Name -> [Route Static] -> Q Exp
 combineStylesheets = combineStylesheets'
-    (appSkipCombining compileTimeAppSettings)
+    (_appSkipCombining compileTimeAppSettings)
     combineSettings
 
 combineScripts :: Name -> [Route Static] -> Q Exp
 combineScripts = combineScripts'
-    (appSkipCombining compileTimeAppSettings)
+    (_appSkipCombining compileTimeAppSettings)
     combineSettings
 
 

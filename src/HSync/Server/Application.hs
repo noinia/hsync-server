@@ -12,6 +12,7 @@ module HSync.Server.Application
     -- , db
     ) where
 
+import Control.Lens
 import Control.Monad.Logger                 (liftLoc)
 import HSync.Server.Import
 import Language.Haskell.TH.Syntax           (qLocation)
@@ -45,14 +46,14 @@ mkYesodDispatch "App" resourcesApp
 -- the place to put your migrate statements to have automatic database
 -- migrations handled by Yesod.
 makeFoundation :: AppSettings -> Acids -> IO App
-makeFoundation appSettings appAcids = do
+makeFoundation _appSettings _appAcids = do
     -- Some basic initializations: HTTP connection manager, logger, and static
     -- subsite.
-    appHttpManager <- newManager
-    appLogger <- newStdoutLoggerSet defaultBufSize >>= makeYesodLogger
-    appStatic <-
-        (if appMutableStatic appSettings then staticDevel else static)
-        (appStaticDir appSettings)
+    _appHttpManager <- newManager
+    _appLogger <- newStdoutLoggerSet defaultBufSize >>= makeYesodLogger
+    _appStatic <-
+        (if _appMutableStatic _appSettings then staticDevel else static)
+        (_appStaticDir _appSettings)
 
     -- Return the foundation
     return $ App {..}
@@ -63,13 +64,13 @@ makeApplication :: App -> IO Application
 makeApplication foundation = do
     logWare <- mkRequestLogger def
         { outputFormat =
-            if appDetailedRequestLogging $ appSettings foundation
+            if _appDetailedRequestLogging $ _appSettings foundation
                 then Detailed True
                 else Apache
-                        (if appIpFromHeader $ appSettings foundation
+                        (if _appIpFromHeader $ _appSettings foundation
                             then FromFallback
                             else FromSocket)
-        , destination = Logger $ loggerSet $ appLogger foundation
+        , destination = Logger $ loggerSet $ _appLogger foundation
         }
 
     -- Create the WAI application and apply middlewares
@@ -79,12 +80,12 @@ makeApplication foundation = do
 -- | Warp settings for the given foundation value.
 warpSettings :: App -> Settings
 warpSettings foundation =
-      setPort (appPort $ appSettings foundation)
-    $ setHost (appHost $ appSettings foundation)
+      setPort (foundation^.appSettings.appPort)
+    $ setHost (foundation^.appSettings.appHost)
     $ setOnException (\_req e ->
         when (defaultShouldDisplayException e) $ messageLoggerSource
             foundation
-            (appLogger foundation)
+            (foundation^.appLogger)
             $(qLocation >>= liftLoc)
             "yesod"
             LevelError
@@ -95,7 +96,7 @@ warpSettings foundation =
 getApplicationDev :: IO (Settings, Application)
 getApplicationDev = do
     settings <- getAppSettings
-    withAcids (appAcidStatePath settings) $ \acids -> do
+    withAcids (settings^.appAcidStatePath) $ \acids -> do
       foundation <- makeFoundation settings acids
       wsettings <- getDevSettings $ warpSettings foundation
       app <- makeApplication foundation
@@ -119,7 +120,7 @@ appMain = do
         -- allow environment variables to override
         useEnv
 
-    withAcids (appAcidStatePath settings) $ \acids -> do
+    withAcids (settings^.appAcidStatePath) $ \acids -> do
       -- Generate the foundation from the settings
       foundation <- makeFoundation settings acids
 
@@ -136,7 +137,7 @@ appMain = do
 getApplicationRepl :: IO (Int, App, Application)
 getApplicationRepl = do
     settings <- getAppSettings
-    withAcids (appAcidStatePath settings) $ \acids -> do
+    withAcids (settings^.appAcidStatePath) $ \acids -> do
       foundation <- makeFoundation settings acids
       wsettings <- getDevSettings $ warpSettings foundation
       app1 <- makeApplication foundation
@@ -154,7 +155,7 @@ shutdownApp _ = return ()
 handler :: Handler a -> IO a
 handler h = do
     settings <- getAppSettings
-    withAcids (appAcidStatePath settings) $ \acids -> do
+    withAcids (settings^.appAcidStatePath) $ \acids -> do
       foundation <- makeFoundation settings acids
       unsafeHandler foundation h
 

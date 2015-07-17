@@ -27,21 +27,23 @@ import qualified Data.Map as M
 -- starts running, such as database connections. Every handler will have
 -- access to the data present here.
 data App = App
-    { appSettings    :: AppSettings
-    , appStatic      :: Static -- ^ Settings for static file serving.
-    , appAcids       :: Acids
-    , appHttpManager :: Manager
-    , appLogger      :: Logger
+    { _appSettings    :: AppSettings
+    , _appStatic      :: Static -- ^ Settings for static file serving.
+    , _appAcids       :: Acids
+    , _appHttpManager :: Manager
+    , _appLogger      :: Logger
     }
+makeLenses ''App
 
-getStatic = appStatic
+
+getStatic = _appStatic
 
 getAcids :: HandlerT App IO Acids
-getAcids = appAcids <$> getYesod
+getAcids = _appAcids <$> getYesod
 
 
 instance HasHttpManager App where
-    getHttpManager = appHttpManager
+    getHttpManager = _appHttpManager
 
 -- This is where we define all of the routes in our application. For a full
 -- explanation of the syntax, please see:
@@ -64,7 +66,7 @@ type Form x = Html -> MForm (HandlerT App IO) (FormResult x, Widget)
 instance Yesod App where
     -- Controls the base of generated URLs. For more information on modifying,
     -- see: https://github.com/yesodweb/yesod/wiki/Overriding-approot
-    approot = ApprootMaster $ appRoot . appSettings
+    approot = ApprootMaster $ _appRoot . _appSettings
 
     -- Store session data on the client in encrypted cookies,
     -- default session idle timeout is 120 minutes
@@ -125,7 +127,7 @@ instance Yesod App where
     -- users receiving stale content.
     addStaticContent ext mime content = do
         master <- getYesod
-        let staticDir = appStaticDir $ appSettings master
+        let staticDir = _appStaticDir $ _appSettings master
         addStaticContentExternal
             minifym
             genFileName
@@ -141,11 +143,11 @@ instance Yesod App where
     -- What messages should be logged. The following includes all messages when
     -- in development, and warnings and errors in production.
     shouldLog app _source level =
-        appShouldLogAll (appSettings app)
+        app^.appSettings.appShouldLogAll
             || level == LevelWarn
             || level == LevelError
 
-    makeLogger = return . appLogger
+    makeLogger = return . _appLogger
 
 
 -- How to access the stuff that we store using acid state
@@ -207,7 +209,7 @@ instance RenderMessage App FormMessage where
     renderMessage _ _ = defaultFormMessage
 
 unsafeHandler :: App -> Handler a -> IO a
-unsafeHandler = Unsafe.fakeHandlerGetLogger appLogger
+unsafeHandler = Unsafe.fakeHandlerGetLogger _appLogger
 
 -- Note: Some functionality previously present in the scaffolding has been
 -- moved to documentation in the Wiki. Following are some hopefully helpful
