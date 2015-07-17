@@ -45,6 +45,8 @@ data RegisterUser = RegisterUser { reqUserName     :: UserName
 $(deriveSafeCopy 0 'base ''RegisterUser)
 
 
+
+
 --------------------------------------------------------------------------------
 -- * Acidic Operations
 
@@ -62,6 +64,11 @@ insertUser ru = do
                     Just _  -> return $ Left "Username already taken."
                     Nothing -> let (u,idx') = insertUser' ru idx
                                in do put idx' ; return $ Right (u,idx')
+
+
+updateUser   :: User -> Update UserIndex ()
+updateUser u = modify (&userList %~ I.insert u)
+
 
 --------------------------------------------------------------------------------
 
@@ -84,4 +91,5 @@ lookupUserById' ui (UserIndex s _) = I.getOne $ s @= ui
 $(makeAcidic ''UserIndex [ 'queryUserIndex
                          , 'lookupUserByName
                          , 'insertUser
+                         , 'updateUser
                          ])

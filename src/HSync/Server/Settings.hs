@@ -5,6 +5,7 @@
 -- declared in the Foundation.hs file.
 module HSync.Server.Settings where
 
+import HSync.Common.Types
 import ClassyPrelude.Yesod
 import Control.Exception           (throw)
 import Data.Aeson                  (Result (..), fromJSON, withObject, (.!=),
@@ -137,3 +138,11 @@ combineScripts :: Name -> [Route Static] -> Q Exp
 combineScripts = combineScripts'
     (appSkipCombining compileTimeAppSettings)
     combineSettings
+
+
+-- | ClientName and ID to use if we change something something from the website.
+webClientName :: ClientName
+webClientName = ClientName "web"
+
+webClientId :: ClientId
+webClientId = ClientId 0

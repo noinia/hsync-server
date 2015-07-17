@@ -8,13 +8,11 @@ import Control.Lens
 import HSync.Common.Types
 import HSync.Common.AccessPolicy
 import HSync.Common.FileVersion
+import HSync.Common.OrphanInstances
 import qualified HSync.Common.StorageTree as ST
 import Data.SafeCopy(base, deriveSafeCopy)
 
 --------------------------------------------------------------------------------
-
-$(deriveSafeCopy 0 'base ''NE.NonEmpty)
-
 
 data RealmNodeData v = RealmNodeData { _versions     :: NE.NonEmpty v
                                      , _accessPolicy :: AccessPolicy
@@ -23,6 +21,9 @@ data RealmNodeData v = RealmNodeData { _versions     :: NE.NonEmpty v
 makeLenses ''RealmNodeData
 $(deriveSafeCopy 0 'base ''RealmNodeData)
 
+
+realmData    :: v -> RealmNodeData v
+realmData fv = RealmNodeData (fv NE.:| []) []
 
 instance ST.HasVersions RealmNodeData v where
   headVersionLens = versions.lens NE.head (\(_ NE.:| xs) x -> x NE.:| xs)
@@ -37,17 +38,20 @@ instance ST.Measured m v => ST.Measured m (RealmNodeData v) where
 type GRealmTree m v = ST.StorageTree FileName m (RealmNodeData v)
 
 
+-- | The tree of data we store
 type RealmTree = GRealmTree LastModificationTime FileVersion
 
 
-
+newRealmTree     :: RealmName -> LastModified -> RealmTree
+newRealmTree n m = ST.Node n (ST.measure d) d mempty
+  where
+    d = realmData $ FileVersion Directory m True
 
 
 --------------------------------------------------------------------------------
 
 
-data Realm = Realm { _realmName         :: RealmName
-                   , _realmTree         :: RealmTree
+data Realm = Realm { _realmTree         :: RealmTree
                    , _realmAccessPolicy :: AccessPolicy
                    }
              deriving (Show,Read)
@@ -75,10 +79,6 @@ commit'             :: Path -> LastModified -> RealmTree -> RealmTree
 commit' (Path p) lm = ST.updateAt p (&ST.headVersionLens.dataCommitted .~ True) parentData
   where
     parentData = realmData $ FileVersion Directory lm True
-
-
-realmData    :: v -> RealmNodeData v
-realmData fv = RealmNodeData (fv NE.:| []) []
 
 
 -- | Update the access policy of the realm
@@ -114,3 +114,6 @@ data AccessPoint = AccessPoint { _accessPointRealm :: RealmId
                  deriving (Show,Read,Eq,Ord,Typeable)
 makeLenses ''AccessPoint
 $(deriveSafeCopy 0 'base ''AccessPoint)
+
+realmRoot   :: RealmId -> AccessPoint
+realmRoot i = AccessPoint i (Path [])

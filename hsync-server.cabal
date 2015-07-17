@@ -31,11 +31,14 @@ library
 
                      HSync.Common.AcidState
                      HSync.Common.AccessPolicy
+                     HSync.Common.DateTime
                      HSync.Common.FileVersion
                      HSync.Common.Realm
                      HSync.Common.StorageTree
                      HSync.Common.Types
                      HSync.Common.User
+                     HSync.Common.OrphanInstances
+
 
     if flag(dev) || flag(library-only)
         cpp-options:   -DDEVELOPMENT
@@ -93,6 +96,7 @@ library
                  , file-embed
 
                  , mtl                           >= 2.1
+                 , transformers                  >= 0.4
                  , lens                          >= 4
                  , acid-state                    >= 0.12
                  , ixset                         >= 1.0.6

@@ -8,10 +8,10 @@ import HSync.Common.Types
 import Data.Semigroup
 import HSync.Common.StorageTree(Measured(..))
 import Data.SafeCopy
-
+import HSync.Common.DateTime
 --------------------------------------------------------------------------------
 
-newtype LastModificationTime = LastModificationTime { _unLMT :: Max UTCTime }
+newtype LastModificationTime = LastModificationTime { _unLMT :: Max DateTime }
                                deriving (Show,Read,Eq,Ord,Semigroup)
 
 instance SafeCopy LastModificationTime where
@@ -34,7 +34,7 @@ dataPath = _File._1
 signature :: Traversal' FileKind Signature
 signature = _File._2
 
-data LastModified = LastModified { _modificationTime :: UTCTime
+data LastModified = LastModified { _modificationTime :: DateTime
                                  , _modUser          :: UserId
                                  , _modClient        :: ClientId
                                  }

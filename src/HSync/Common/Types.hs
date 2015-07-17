@@ -54,9 +54,7 @@ newtype RealmId = RealmId Integer
                 deriving (Show,Read,Eq,Ord,ToMarkup,Typeable)
 $(deriveSafeCopy 0 'base ''RealmId)
 
-newtype RealmName = RealmName Text
-                  deriving (Show,Read,Eq,Ord,ToMarkup,Typeable)
-$(deriveSafeCopy 0 'base ''RealmName)
+type RealmName = FileName
 
 --------------------------------------------------------------------------------
 

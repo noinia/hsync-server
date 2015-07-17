@@ -11,11 +11,16 @@ import qualified Yesod.Core.Unsafe as Unsafe
 import Control.Lens
 import HSync.Common.Types
 import HSync.Common.User
+import HSync.Common.FileVersion
+import HSync.Common.AccessPolicy
+import HSync.Common.DateTime(currentTime)
 import HSync.Server.User
+import HSync.Server.Realm
+import HSync.Common.Realm(realmRoot)
 import HSync.Server.LocalAuth
 import HSync.Server.AcidState
 import HSync.Common.AcidState
-
+import qualified Data.Map as M
 
 -- | The foundation datatype for your application. This can be a good place to
 -- keep settings and values requiring initialization before your application
@@ -145,16 +150,25 @@ instance Yesod App where
 
 -- How to access the stuff that we store using acid state
 
--- instance HasAcidState (HandlerT App IO)  where
---   getAcidState = fsState <$> getAcids
+instance HasAcidState (HandlerT App IO) Realms where
+  getAcidState = _serverRealms <$> getAcids
 
 instance HasAcidState (HandlerT App IO) UserIndex where
   getAcidState = _users <$> getAcids
 
 
 instance YesodLocalAuth App where
-  onRegister _ = return ()
+  onRegister = createHomeRealm
 
+
+createHomeRealm   :: User -> HandlerT App IO ()
+createHomeRealm u = do dt <- currentTime
+                       let lm = LastModified dt (u^.userId) webClientId
+                       (ri,_,_) <- updateAcid $ CreateRealm rn lm ap
+                       updateAcid . UpdateUser $ addRealm (realmRoot ri) u
+  where
+    rn  = FileName $ u^.userName.unUserName
+    ap  = [AccessUser $ M.singleton (u^.userId) [Read,Write]]
 
 instance YesodAuth App where
     type AuthId App = User

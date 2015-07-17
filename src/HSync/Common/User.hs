@@ -9,6 +9,8 @@ import Data.Set(Set)
 import Data.SafeCopy(base, deriveSafeCopy)
 import Text.Read(reads)
 import Control.Lens
+import qualified Data.Set as S
+
 
 --------------------------------------------------------------------------------
 
@@ -39,3 +41,7 @@ instance PathPiece User where
                       [(u,"")] -> Just u
                       _        -> Nothing
   toPathPiece     = pack . show
+
+
+addRealm      :: AccessPoint -> User -> User
+addRealm ap u = u&realms %~ (S.insert ap)

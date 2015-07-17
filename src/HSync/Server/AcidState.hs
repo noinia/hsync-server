@@ -10,16 +10,17 @@ import HSync.Common.Types
 import HSync.Server.User
 import HSync.Server.Realm
 import Data.Acid(AcidState(..))
+import Control.Lens
 
 --------------------------------------------------------------------------------
 
 
 
 
-data Acids = Acids { _realms :: AcidState Realms
-                   , _users  :: AcidState UserIndex
+data Acids = Acids { _serverRealms :: AcidState Realms
+                   , _users        :: AcidState UserIndex
                    }
-
+makeLenses ''Acids
 
 -- instance Default Acids where
 --   def = Acids def def

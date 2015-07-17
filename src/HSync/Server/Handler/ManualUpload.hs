@@ -14,11 +14,6 @@ import           Yesod.Form.Bootstrap3(withPlaceholder)
 -- * Manually Add Dir
 
 
--- | ClientIdent to use if we are uploading something from the website.
-webClientIdent :: ClientName
-webClientIdent = ClientName "web"
-
-
 -- | Create a new directory based on the info supplied in the form.
 postWebCreateDirR        :: Path -- ^ Directory in which to add a new directory
                          -> Handler Html
