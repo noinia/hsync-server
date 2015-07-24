@@ -9,6 +9,8 @@ import Data.Semigroup
 import HSync.Common.StorageTree(Measured(..))
 import Data.SafeCopy
 import HSync.Common.DateTime
+import qualified Data.Text as T
+
 --------------------------------------------------------------------------------
 
 newtype LastModificationTime = LastModificationTime { _unLMT :: Max DateTime }
@@ -20,17 +22,27 @@ instance SafeCopy LastModificationTime where
 
 
 data FileKind = Directory
-              | File  { _dataPath  :: FilePath -- ^ Path where this file is actually stored
-                      , _signature :: Signature
-                      }
+              | File Signature
               | NonExistent
               deriving (Show,Read,Eq)
 makePrisms ''FileKind
 $(deriveSafeCopy 0 'base ''FileKind)
 
-isFile            :: FileKind -> Bool
-isFile (File _ _) = True
-isFile _          = False
+
+instance PathPiece FileKind where
+  toPathPiece Directory   = "Directory"
+  toPathPiece (File s)    = "File_" <> toPathPiece s
+  toPathPiece NonExistent = "NonExistent"
+
+  fromPathPiece "Directory" = pure Directory
+  fromPathPiece "NonExistent" = pure NonExistent
+  fromPathPiece t = case splitAt 5 t of
+      ("File_",t') -> File <$> fromPathPiece t'
+      _            -> Nothing
+
+isFile          :: FileKind -> Bool
+isFile (File _) = True
+isFile _        = False
 
 isDirectory           :: FileKind -> Bool
 isDirectory Directory = True
@@ -41,11 +53,8 @@ exists NonExistent = False
 exists _           = True
 
 
-dataPath :: Traversal' FileKind FilePath
-dataPath = _File._1
-
 signature :: Traversal' FileKind Signature
-signature = _File._2
+signature = _File
 
 data LastModified = LastModified { _modificationTime :: DateTime
                                  , _modUser          :: UserId

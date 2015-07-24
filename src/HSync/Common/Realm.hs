@@ -1,9 +1,54 @@
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE UndecidableInstances #-}
-module HSync.Common.Realm where
+module HSync.Common.Realm(
+                           Realm(Realm), realmTree, realmAccessPolicy
+                         , RealmNodeData(RealmNodeData), versions, accessPolicy
+                         , RealmTree
+
+                         , AccessPoint(AccessPoint), accessWithRealmName, accessPointPath
+
+                         , newRealmTree
+                         , realmData
+                         , realmRoot
+
+
+                         , realmName
+                         , access
+                         , accessWithRealmName
+
+                         , current
+                         , current'
+
+                         , addFile
+                         , addDirectory
+                         , delete
+                         , update
+
+                         , commit
+                         , commit'
+
+                         , updateAccessPolicy
+                         , updateAccessPolicyOf
+
+                         , files
+                         , subDirectories
+
+                           -- * Re-Exports from StorageTree
+                         , ST.HasVersions(..)
+
+                         , ST.Measured(..)
+                         , ST.HasEmpty(..)
+                         , ST.OrdByName(..), ST.unOrdByName
+                         , ST.lookupByName
+
+                         , ST.StorageTree(Node), ST.name, ST.measurement
+                         , ST.nodeData, ST.children
+                         )
+
+       where
 
 import qualified Data.List.NonEmpty as NE
-import ClassyPrelude.Yesod hiding (update)
+import ClassyPrelude.Yesod hiding (update, delete)
 import Control.Lens
 import HSync.Common.Types
 import HSync.Common.AccessPolicy
@@ -79,9 +124,9 @@ current' :: RealmTree -> StorageTree FileName LastModificationTime FileVersion
 current' = fmap ST.headVersion
 
 
-addFile            :: Path -> LastModified -> Bool -> FilePath -> Signature
-                   -> Realm -> Realm
-addFile p m b fp s = realmTree %~ update p (FileVersion (File fp s) m b)
+addFile         :: Path -> LastModified -> Bool -> Signature
+                -> Realm -> Realm
+addFile p m b s = realmTree %~ update p (FileVersion (File s) m b)
 
 addDirectory     :: Path -> LastModified -> Realm -> Realm
 addDirectory p m = realmTree %~ update p (FileVersion Directory m True)

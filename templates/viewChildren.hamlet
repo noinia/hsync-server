@@ -4,12 +4,21 @@
 
 <h1>Content
 
-<table>
+<table .contentList>
   <tbody>
     $forall c <- chs
-      <tr>
-        <td><span .glyphicon .glyphicon-file aria-hidden="true">
-        <td><a href=@{ViewTreeR ri (pathOf c)}> #{view name c}</a>
-        <td><span .glyphicon .glyphicon-download-alt aria-hidden="true">
-        <td><span .glyphicon .glyphicon-search aria-hidden="true">
-        <td><span .glyphicon .glyphicon-remove aria-hidden="true">
+      <tr :isNonExistent c:.nonExistent>
+        <td .file .icon>#{iconOf c}
+        <td .fileName><a href=@{ViewRealmR ri (pathOf c)}> #{view name c}</a>
+        <td .download .icon>
+          <a href="#">
+            <span class="glyphicon glyphicon-download-alt" aria-hidden="true"></a>
+        <td .inspect .icon>
+          <a href=@{ViewRealmR ri (pathOf c)}>
+            <span class="glyphicon glyphicon-search" aria-hidden="true"></a>
+        <td .remove .icon>
+          $if exists (fileKindOf c)
+            <a href=@{WebDeleteR ri (fileKindOf c) (pathOf c)}>
+          $else
+            <a href="#">
+          <span class="glyphicon glyphicon-remove" aria-hidden="true"></a>

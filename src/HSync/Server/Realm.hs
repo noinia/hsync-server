@@ -14,6 +14,7 @@ module HSync.Server.Realm( Realms(Realms), realmMap, nextRealmId
                          , Realm(Realm), realmTree, realmAccessPolicy
                          , Realm.RealmNodeData(RealmNodeData), versions, accessPolicy
                          , RealmTree, Realm.current'
+
                          ) where
 
 import Data.Monoid
@@ -106,11 +107,10 @@ addFile               :: RealmId
                                   -- the operation is not executed, and we return a Nothing
                       -> LastModified -- ^ the new modification information
                       -> Bool -- ^ if we committed the data already or not
-                      -> FilePath -- ^ the file path where we store the files data
                       -> Signature -- ^ and the file's signature
                       -> Update Realms (Either ErrorMessage FileVersion)
-addFile ri p currentKind m b fp s = checkAndUpdate ri p currentKind
-                                                   (Realm.addFile p m b fp s)
+addFile ri p currentKind m b s = checkAndUpdate ri p currentKind
+                                                   (Realm.addFile p m b s)
 
 -- | Add A Directory to the given realm
 -- pre: Realm exists

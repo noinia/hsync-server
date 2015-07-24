@@ -78,43 +78,7 @@ instance Yesod App where
         120    -- timeout in minutes
         "config/client_session_key.aes"
 
-    defaultLayout mainContent = do
-        -- master <- getImplementation
-        mmsg   <- getMessage
-        muser  <- maybeAuthId
-
-        let loginR'     = AuthR loginR
-            userMenu    = maybe $(widgetFile "loginForm")
-                                (\user -> $(widgetFile "userLoggedIn"))
-                                muser
-        -- We break up the default layout into two components:
-        -- default-layout is the contents of the body tag, and
-        -- default-layout-wrapper is the entire page. Since the final
-        -- value passed to hamletToRepHtml cannot be a widget, this allows
-        -- you to use normal widget features in default-layout.
-
-        pc <- widgetToPageContent $ do
-                setTitle "Welcome To HSync!"
-                $(combineStylesheets 'StaticR [ css_bootstrap_css --  css_normalize_css
-                                              ])
-                $(widgetFile "default-layout")
-        withUrlRenderer $(hamletFile "templates/default-layout-wrapper.hamlet")
-
-
-    -- defaultLayout widget = do
-    --     master <- getYesod
-    --     mmsg <- getMessage
-
-    --     -- We break up the default layout into two components:
-    --     -- default-layout is the contents of the body tag, and
-    --     -- default-layout-wrapper is the entire page. Since the final
-    --     -- value passed to hamletToRepHtml cannot be a widget, this allows
-    --     -- you to use normal widget features in default-layout.
-
-    --     pc <- widgetToPageContent $ do
-    --         addStylesheet $ StaticR css_bootstrap_css
-    --         $(widgetFile "default-layout")
-    --     withUrlRenderer $(hamletFile "templates/default-layout-wrapper.hamlet")
+    defaultLayout mainContent = defaultLayout' $(widgetFile "simple-layout")
 
     -- The page to be redirected to when authentication is required.
     authRoute _ = Just $ AuthR LoginR
@@ -155,9 +119,7 @@ instance Yesod App where
     makeLogger = return . _appLogger
 
 
-
-
-jumbotronLayout jumboContent mainContent = do
+defaultLayout' layout = do
         -- master <- getImplementation
         mmsg   <- getMessage
         muser  <- maybeAuthId
@@ -176,8 +138,38 @@ jumbotronLayout jumboContent mainContent = do
                 setTitle "Welcome To HSync!"
                 $(combineStylesheets 'StaticR [ css_bootstrap_css --  css_normalize_css
                                               ])
-                $(widgetFile "jumbotron-layout")
+                $(widgetFile "default-layout")
         withUrlRenderer $(hamletFile "templates/default-layout-wrapper.hamlet")
+
+
+
+
+jumbotronLayout jumboContent mainContent = defaultLayout' $(widgetFile "jumbotron-layout")
+
+
+
+  -- do
+  --       -- master <- getImplementation
+  --       mmsg   <- getMessage
+  --       muser  <- maybeAuthId
+
+  --       let loginR'     = AuthR loginR
+  --           userMenu    = maybe $(widgetFile "loginForm")
+  --                               (\user -> $(widgetFile "userLoggedIn"))
+  --                               muser
+  --       -- We break up the default layout into two components:
+  --       -- default-layout is the contents of the body tag, and
+  --       -- default-layout-wrapper is the entire page. Since the final
+  --       -- value passed to hamletToRepHtml cannot be a widget, this allows
+  --       -- you to use normal widget features in default-layout.
+
+  --       pc <- widgetToPageContent $ do
+  --               setTitle "Welcome To HSync!"
+  --               $(combineStylesheets 'StaticR [ css_bootstrap_css --  css_normalize_css
+  --                                             , css_default_css
+  --                                             ])
+  --               $(widgetFile "jumbotron-layout")
+  --       withUrlRenderer $(hamletFile "templates/default-layout-wrapper.hamlet")
 
 
 
@@ -244,6 +236,9 @@ instance RenderMessage App FormMessage where
 
 unsafeHandler :: App -> Handler a -> IO a
 unsafeHandler = Unsafe.fakeHandlerGetLogger _appLogger
+
+
+
 
 -- Note: Some functionality previously present in the scaffolding has been
 -- moved to documentation in the Wiki. Following are some hopefully helpful

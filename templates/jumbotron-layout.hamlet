@@ -1,27 +1,10 @@
-<nav .navbar .navbar-inverse .navbar-fixed-top>
-  <div .container>
-    <div .navbar-header>
-      <button type="button" .navbar-toggle .collapsed
-        data-toggle="collapse"
-        data-target="#navbar" aria-expanded="false" aria-controls="navbar">
-          <span .sr-only>Toggle navigation
-          <span .icon-bar>
-          <span .icon-bar>
-          <span .icon-bar>
-      <a .navbar-brand href="#">HSync
-    <div #navbar .navbar-collapse .collapse>
-      ^{userMenu}
+<div>
 
-$maybe msg <- mmsg
-  <div #message>#{msg}
-
-<div class="main">
-
-  <div class="jumbotron">
-    <div class="container">
+  <div .jumbotron>
+    <div .container>
       ^{jumboContent}
 
-  <div class="container">
+  <div .container #main>
     ^{mainContent}
 
 

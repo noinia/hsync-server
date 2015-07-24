@@ -1,27 +1,17 @@
+{-# LANGUAGE LambdaCase #-}
 module HSync.Server.Handler.ManualUpload where
 
-import Data.Monoid(mappend)
 import qualified Data.Char as C
 import qualified Data.List as L
 import qualified Data.Text as T
 import           HSync.Server.Import
 import           Control.Lens
 import           Yesod.Form.Bootstrap3(withPlaceholder)
+import           Yesod.Core.Types(FileInfo(..))
+
 
 --------------------------------------------------------------------------------
 -- * Manually Add Dir
-
-
-
-createDirectory                     :: RealmId -> Path -> FileKind
-                                    -> Handler (Either ErrorMessage FileVersion)
-createDirectory ri p currentKind = do
-    dt  <- currentTime
-    mui <- (fmap (^.userId)) <$> maybeAuthId
-    case mui of
-      Just ui -> updateAcid $ AddDirectory ri p currentKind (LastModified dt ui webClientId)
-      Nothing -> return $ Left "Error. Create Directory needs a userId"
-
 
 -- | Create a new directory based on the info supplied in the form.
 -- pre: The path does not already contain a directory or file.
@@ -40,7 +30,7 @@ postWebCreateDirR ri parent = do
             Right _  -> setMessage $ "Created directory '" <> toHtml n <> "'."
       FormFailure errs -> let e = mconcat $ map toHtml errs
                           in setMessage $ "Error. Could not add directory " <> e
-    redirect $ ViewTreeR ri parent
+    redirect $ ViewRealmR ri parent
 
 -- | Code that generates the widget/form which can be used to create a new directory
 webCreateDir           :: RealmId -> Path -> Handler Widget
@@ -78,20 +68,20 @@ isValidFileName = T.all isValidChar
 -- | Upload a file from the webiste. If the file with this path already exist
 -- it will be replaced.
 postWebStoreFileR           :: RealmId -> Path -> Handler Html
-postWebStoreFileR ri parent = error "storefile"
-
-  -- do
-  --   ((result,_), _) <- runFormPost addFileForm
-  --   case result of
-  --     FormSuccess fInfo -> do
-  --                            let p  = Path u (sp ++ [fileName fInfo])
-  --                                ci = webClientIdent
-  --                            fi   <- getFileIdent p
-  --                            t <- putFile ci fi p (fileSourceRaw fInfo)
-  --                            setMessage $ toHtml t
-  --     FormFailure errs -> let e = mconcat $ map toHtml errs
-  --                         in setMessage $  "Error. Could not add file: " <> e
-  --   redirect $ ViewTreeR parent
+postWebStoreFileR ri parent = do
+    ((result,_), _) <- runFormPost addFileForm
+    case result of
+      FormSuccess fInfo -> do
+          let n = FileName $ fileName fInfo
+              p = parent&pathParts %~ (++ [n])
+          efv <- addFile ri p NonExistent fInfo
+                 -- we can only create a File if it does not exist yet
+          case efv of
+            Left err -> setMessage $ toHtml err
+            Right _  -> setMessage $ "Added File '" <> toHtml n <> "'."
+      FormFailure errs  -> let e = mconcat $ map toHtml errs
+                          in setMessage $ "Error. Could not add file " <> e
+    redirect $ ViewRealmR ri parent
 
 -- | Generate the widget that allows uploading a file
 webStoreFile           :: RealmId -> Path -> Handler Widget
@@ -103,3 +93,48 @@ webStoreFile ri parent = do
 -- | Form to upload a file
 addFileForm :: Form FileInfo
 addFileForm = renderDivs $ areq fileField "Upload File" Nothing
+
+
+--------------------------------------------------------------------------------
+-- * Deleting a file
+
+getWebDeleteR         :: RealmId -> FileKind -> Path -> Handler Html
+getWebDeleteR ri fk p = do
+  ev <- deleteFileOrDir ri p fk
+  case ev of
+    Left err -> setMessage $ "Error. Could not delete file or directory " <> toHtml p
+    Right _  -> setMessage $ "Deleted " <> toHtml p
+  redirect $ ViewRealmR ri (parentOf p)
+
+--------------------------------------------------------------------------------
+-- * Actual implementations for these things
+
+addFile                        :: RealmId -> Path -> FileKind -> FileInfo
+                               -> Handler (Either ErrorMessage FileVersion)
+addFile ri p currentKind fInfo = do
+    (_,sig) <- storeFile ri p (fileSourceRaw fInfo)
+    elm     <- getLastModified
+    case elm of
+      Left err -> return $ Left err
+      Right lm -> updateAcid $ AddFile ri p currentKind lm True sig
+
+getLastModified :: Handler (Either ErrorMessage LastModified)
+getLastModified = do
+    dt  <- currentTime
+    mui <- (fmap (^.userId)) <$> maybeAuthId
+    return $ case mui of
+      Just ui -> Right $ LastModified dt ui webClientId
+      Nothing -> Left "Error: We need a UserId to create a LastModified"
+
+createDirectory                     :: RealmId -> Path -> FileKind
+                                    -> Handler (Either ErrorMessage FileVersion)
+createDirectory ri p currentKind = getLastModified >>= \case
+    Left err -> return $ Left err
+    Right lm -> updateAcid $ AddDirectory ri p currentKind lm
+
+
+deleteFileOrDir                  :: RealmId -> Path -> FileKind
+                                 -> Handler (Either ErrorMessage FileVersion)
+deleteFileOrDir ri p currentKind = getLastModified >>= \case
+    Left err -> return $ Left err
+    Right lm -> updateAcid $ Delete ri p currentKind lm

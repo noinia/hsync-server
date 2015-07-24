@@ -1,0 +1,7 @@
+<div .container #main>
+  <div .starter-template>
+    ^{mainContent}
+
+<footer class="navbar navbar-fixed-bottom navbar-inverse">
+  <div class="container">
+    <p class="navbar-text">&copy; FStaals.net 2015

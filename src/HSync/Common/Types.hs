@@ -9,8 +9,9 @@ import Control.Lens
 import qualified Crypto.Hash as Hash
 import qualified Data.Text as T
 import qualified Data.ByteString.Char8 as B
+import qualified Data.List as L
 
-import Data.Serialize(encode)
+import Data.Serialize(encode,decode)
 import Crypto.Conduit(hashFile)
 import qualified Crypto.Hash.CryptoAPI as CryptoAPI
 
@@ -31,10 +32,17 @@ newtype Path = Path { _pathParts :: [FileName] }
 $(deriveSafeCopy 0 'base ''Path)
 makeLenses ''Path
 
+parentOf          :: Path -> Path
+parentOf (Path p) = Path . L.init $ p
 
 instance PathMultiPiece Path where
     fromPathMultiPiece xs      = Path <$> mapM fromPathPiece xs
     toPathMultiPiece (Path fs) = map toPathPiece fs
+
+instance ToMarkup Path where
+  toMarkup = mconcat . L.intersperse slash . map toMarkup . _pathParts
+    where
+      slash = toMarkup ("/" :: Text)
 
 --------------------------------------------------------------------------------
 
@@ -123,16 +131,29 @@ hashPassword = HashedPassword . hash' . _unPassword
 newtype HashedURL = HashedURL { _hashedUrlData :: ByteString }
                     deriving (Show,Read,Eq,Ord)
 $(deriveSafeCopy 0 'base ''HashedURL)
-
+makeLenses ''HashedURL
 
 newtype Signature = Signature { _signatureData :: ByteString }
                     deriving (Show,Read,Eq,Ord)
 $(deriveSafeCopy 0 'base ''Signature)
+makeLenses ''Signature
 
-
+instance PathPiece Signature where
+  toPathPiece   = T.pack . B.unpack . _signatureData
+  fromPathPiece = Just . Signature . B.pack . T.unpack
 
 fileSignature    :: MonadIO m => FilePath -> m Signature
 fileSignature fp = f <$> hashFile fp
   where
     f :: CryptoAPI.SHA1 -> Signature
     f = Signature . encode
+
+
+showSignatureData               :: Signature -> String
+showSignatureData (Signature b) = decodeSignatureData b
+
+decodeSignatureData   :: ByteString -> String
+decodeSignatureData b = case decode b of
+    Left _  -> B.unpack b
+      -- failed to decode, so as a best effort show and treat as Char8
+    Right x -> show (x :: CryptoAPI.SHA1)

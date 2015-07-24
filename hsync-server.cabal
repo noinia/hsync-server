@@ -27,8 +27,9 @@ library
                      HSync.Server.Handler.Common
                      HSync.Server.Handler.Home
                      HSync.Server.Handler.ManualUpload
-                     HSync.Server.Handler.ViewTree
+                     HSync.Server.Handler.Realm
                      HSync.Server.Handler.User
+                     HSync.Server.Handler.FileUtils
 
                      HSync.Common.AcidState
                      HSync.Common.AccessPolicy
@@ -110,6 +111,8 @@ library
                  , crypto-conduit                >= 0.5.5
                  , cryptohash-cryptoapi
                  , cereal
+                 , filepath                      >= 1.4.0.0
+                 , random                        >= 1.1
 
                  , safe
                  , unordered-containers

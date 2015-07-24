@@ -13,12 +13,9 @@
       ^{userMenu}
 
 $maybe msg <- mmsg
-  <div #message>#{msg}
+  <div #message .alert .alert-dismissible role="alert">#{msg}
+    <button type="button" .close data-dismiss="alert"
+      aria-label="Close"><span aria-hidden="true">&times;</span>
 
-<div .container>
-  <div .starter-template>
-    ^{mainContent}
 
-<footer class="navbar navbar-fixed-bottom navbar-inverse">
-  <div class="container">
-    <p class="navbar-text">&copy; FStaals.net 2015
+^{layout}

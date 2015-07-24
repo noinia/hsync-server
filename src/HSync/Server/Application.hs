@@ -34,7 +34,7 @@ import HSync.Server.AcidState
 import HSync.Server.Handler.Common
 import HSync.Server.Handler.Home
 import HSync.Server.Handler.ManualUpload
-import HSync.Server.Handler.ViewTree
+import HSync.Server.Handler.Realm
 import HSync.Server.Handler.User
 
 -- This line actually creates our YesodDispatch instance. It is the second half

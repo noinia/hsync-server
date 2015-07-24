@@ -5,10 +5,11 @@
 /                                 HomeR           GET
 
 
-/view/tree/#RealmId/*Path         ViewTreeR       GET
+/view/realm/#RealmId/*Path        ViewRealmR      GET
 
 /create/directory/#RealmId/*Path  WebCreateDirR   POST
 /store/file/#RealmId/*Path        WebStoreFileR   POST
+/delete/#RealmId/#FileKind/*Path  WebDeleteR      GET
 
 
 /admin/users                      ListUsersR      GET

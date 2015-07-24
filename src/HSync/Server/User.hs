@@ -22,9 +22,8 @@ import qualified Data.Set as S
 import ClassyPrelude.Yesod hiding (Update, Query, get)
 import Control.Lens hiding (Indexable)
 import HSync.Common.AcidState
-import HSync.Common.Types                    as Import
-import HSync.Common.User                     as Import
-import Data.Default
+import HSync.Common.Types
+import HSync.Common.User
 import Data.IxSet
 import Control.Monad.State.Class
 import Control.Monad.Reader.Class
