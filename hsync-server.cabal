@@ -28,6 +28,7 @@ library
                      HSync.Server.Handler.Home
                      HSync.Server.Handler.ManualUpload
                      HSync.Server.Handler.ViewTree
+                     HSync.Server.Handler.User
 
                      HSync.Common.AcidState
                      HSync.Common.AccessPolicy
@@ -106,10 +107,14 @@ library
                  , blaze-markup                  >= 0.7
                  , cryptonite                    >= 0.5
 
+                 , crypto-conduit                >= 0.5.5
+                 , cryptohash-cryptoapi
+                 , cereal
+
                  , safe
                  , unordered-containers
                  , containers
-                 , vector
+                 , vector                        >= 0.10    && < 0.11
                  , time
 
 executable         hsync-server

@@ -28,6 +28,19 @@ data FileKind = Directory
 makePrisms ''FileKind
 $(deriveSafeCopy 0 'base ''FileKind)
 
+isFile            :: FileKind -> Bool
+isFile (File _ _) = True
+isFile _          = False
+
+isDirectory           :: FileKind -> Bool
+isDirectory Directory = True
+isDirectory _         = False
+
+exists             :: FileKind -> Bool
+exists NonExistent = False
+exists _           = True
+
+
 dataPath :: Traversal' FileKind FilePath
 dataPath = _File._1
 

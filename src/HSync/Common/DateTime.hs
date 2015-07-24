@@ -11,7 +11,7 @@ module HSync.Common.DateTime( DateTime(..)
 
                             , AsDateTime(..)
 
-                            , modificationTime
+                            , fileModificationTime
                             , toEpochTime, fromEpochTime
                             ) where
 
@@ -83,8 +83,8 @@ day = utctDay . unDT
 
 
 -- | Get the file modification time
-modificationTime    :: MonadIO m => FilePath -> m DateTime
-modificationTime fp = liftIO $ DateTime <$> getModificationTime fp
+fileModificationTime    :: MonadIO m => FilePath -> m DateTime
+fileModificationTime fp = liftIO $ DateTime <$> getModificationTime fp
 
 
 -- | Conversion to an EpochTime (CTime) via POSIXTime and Integer Note that the

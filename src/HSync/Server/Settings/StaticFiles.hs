@@ -1,6 +1,6 @@
 module HSync.Server.Settings.StaticFiles where
 
-import HSync.Server.Settings     (_appStaticDir, compileTimeAppSettings)
+import HSync.Server.Settings     (_staticDir, compileTimeAppSettings)
 import Yesod.Static (staticFiles)
 
 -- This generates easy references to files in the static directory at compile time,
@@ -15,4 +15,4 @@ import Yesod.Static (staticFiles)
 -- If the identifier is not available, you may use:
 --
 --     StaticFile ["js", "script.js"] []
-staticFiles (_appStaticDir compileTimeAppSettings)
+staticFiles (_staticDir compileTimeAppSettings)

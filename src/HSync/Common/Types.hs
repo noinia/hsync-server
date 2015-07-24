@@ -6,15 +6,13 @@ import Data.SafeCopy(base, deriveSafeCopy)
 import Text.Blaze(ToMarkup(..))
 import Data.SafeCopy(SafeCopy(..))
 import Control.Lens
-import qualified Crypto.Hash
+import qualified Crypto.Hash as Hash
 import qualified Data.Text as T
 import qualified Data.ByteString.Char8 as B
--- import qualified Data.ByteString as B
 
--- import Prelude
--- import Data.Text(Text)
--- import Data.ByteString(ByteString)
--- import Data.String(IsString(..))
+import Data.Serialize(encode)
+import Crypto.Conduit(hashFile)
+import qualified Crypto.Hash.CryptoAPI as CryptoAPI
 
 --------------------------------------------------------------------------------
 
@@ -22,14 +20,17 @@ type ErrorMessage = Text
 
 --------------------------------------------------------------------------------
 
-newtype FileName = FileName Text
+newtype FileName = FileName { _unFileName :: Text }
                    deriving (Show,Read,Eq,Ord,IsString,ToMarkup,PathPiece,Typeable)
 $(deriveSafeCopy 0 'base ''FileName)
+makeLenses ''FileName
 
 
-newtype Path = Path [FileName]
+newtype Path = Path { _pathParts :: [FileName] }
                deriving (Show,Read,Eq,Ord,Typeable)
 $(deriveSafeCopy 0 'base ''Path)
+makeLenses ''Path
+
 
 instance PathMultiPiece Path where
     fromPathMultiPiece xs      = Path <$> mapM fromPathPiece xs
@@ -51,7 +52,7 @@ $(deriveSafeCopy 0 'base ''ClientName)
 
 
 newtype RealmId = RealmId Integer
-                deriving (Show,Read,Eq,Ord,ToMarkup,Typeable)
+                deriving (Show,Read,Eq,Ord,ToMarkup,Typeable,PathPiece)
 $(deriveSafeCopy 0 'base ''RealmId)
 
 type RealmName = FileName
@@ -108,8 +109,8 @@ newtype HashedPassword = HashedPassword { _unHashedPassword :: Text }
 $(deriveSafeCopy 0 'base ''HashedPassword)
 makeLenses ''HashedPassword
 
-sha1 :: ByteString -> Crypto.Hash.Digest Crypto.Hash.SHA1
-sha1 = Crypto.Hash.hash
+sha1 :: ByteString -> Hash.Digest Hash.SHA1
+sha1 = Hash.hash
 
 hash' :: Text -> Text
 hash' = T.pack . show . sha1 . B.pack . T.unpack
@@ -127,3 +128,11 @@ $(deriveSafeCopy 0 'base ''HashedURL)
 newtype Signature = Signature { _signatureData :: ByteString }
                     deriving (Show,Read,Eq,Ord)
 $(deriveSafeCopy 0 'base ''Signature)
+
+
+
+fileSignature    :: MonadIO m => FilePath -> m Signature
+fileSignature fp = f <$> hashFile fp
+  where
+    f :: CryptoAPI.SHA1 -> Signature
+    f = Signature . encode

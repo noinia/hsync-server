@@ -7,6 +7,8 @@ port:           "_env:PORT:3000"
 approot:        "_env:APPROOT:http://localhost:3000"
 ip-from-header: "_env:IP_FROM_HEADER:false"
 
+files-path:     "files"
+
 # Optional values with the following production defaults.
 # In development, they default to the inverse.
 #
@@ -16,6 +18,3 @@ ip-from-header: "_env:IP_FROM_HEADER:false"
 # reload-templates: false
 # mutable-static: false
 # skip-combining: false
-
-copyright: Insert copyright statement here
-#analytics: UA-YOURCODE

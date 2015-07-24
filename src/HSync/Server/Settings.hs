@@ -24,34 +24,36 @@ import Yesod.Default.Util          (WidgetFileSettings, widgetFileNoReload,
 -- loaded from various sources: defaults, environment variables, config files,
 -- theoretically even a database.
 data AppSettings = AppSettings
-    { _appStaticDir              :: String
+    { _staticDir              :: String
     -- ^ Directory from which to serve static files.
-    -- , appDatabaseConf           :: SqliteConf
-    -- ^ Configuration settings for accessing the database.
     , _appRoot                   :: Text
     -- ^ Base for all generated URLs.
-    , _appHost                   :: HostPreference
+    , _host                   :: HostPreference
     -- ^ Host/interface the server should bind to.
-    , _appPort                   :: Int
+    , _port                   :: Int
     -- ^ Port to listen on
-    , _appIpFromHeader           :: Bool
+    , _ipFromHeader           :: Bool
     -- ^ Get the IP address from the header when logging. Useful when sitting
     -- behind a reverse proxy.
 
-      -- Path with acid state stuff
-    , _appAcidStatePath          :: Maybe FilePath
+    , _acidStatePath          :: Maybe FilePath
+    -- ^ Path with acid state stuff. If Nothing use the default ('state')
 
-
-    , _appDetailedRequestLogging :: Bool
+    , _detailedRequestLogging :: Bool
     -- ^ Use detailed request logging system
-    , _appShouldLogAll           :: Bool
+    , _shouldLogAll           :: Bool
     -- ^ Should all log messages be displayed?
-    , _appReloadTemplates        :: Bool
+    , _reloadTemplates        :: Bool
     -- ^ Use the reload version of templates
-    , _appMutableStatic          :: Bool
+    , _mutableStatic          :: Bool
     -- ^ Assume that files in the static dir may change after compilation
-    , _appSkipCombining          :: Bool
+    , _skipCombining          :: Bool
     -- ^ Perform no stylesheet/script combining
+
+
+    , _filesPath              :: FilePath
+    -- ^ Path where we store the actual files
+
     }
 makeLenses ''AppSettings
 
@@ -63,19 +65,20 @@ instance FromJSON AppSettings where
 #else
                 False
 #endif
-        _appStaticDir              <- o .: "static-dir"
+        _staticDir              <- o .: "static-dir"
         -- appDatabaseConf           <- o .: "database"
-        _appRoot                   <- o .: "approot"
-        _appHost                   <- fromString <$> o .: "host"
-        _appPort                   <- o .: "port"
-        _appIpFromHeader           <- o .: "ip-from-header"
-        _appAcidStatePath          <- o .:? "acid-state-path"
+        _appRoot                <- o .: "approot"
+        _host                   <- fromString <$> o .: "host"
+        _port                   <- o .: "port"
+        _ipFromHeader           <- o .: "ip-from-header"
+        _acidStatePath          <- o .:? "acid-state-path"
 
-        _appDetailedRequestLogging <- o .:? "detailed-logging" .!= defaultDev
-        _appShouldLogAll           <- o .:? "should-log-all"   .!= defaultDev
-        _appReloadTemplates        <- o .:? "reload-templates" .!= defaultDev
-        _appMutableStatic          <- o .:? "mutable-static"   .!= defaultDev
-        _appSkipCombining          <- o .:? "skip-combining"   .!= defaultDev
+        _detailedRequestLogging <- o .:? "detailed-logging" .!= defaultDev
+        _shouldLogAll           <- o .:? "should-log-all"   .!= defaultDev
+        _reloadTemplates        <- o .:? "reload-templates" .!= defaultDev
+        _mutableStatic          <- o .:? "mutable-static"   .!= defaultDev
+        _skipCombining          <- o .:? "skip-combining"   .!= defaultDev
+        _filesPath              <- o .: "files-path"
 
         return AppSettings {..}
 
@@ -96,7 +99,7 @@ combineSettings = def
 -- user.
 
 widgetFile :: String -> Q Exp
-widgetFile = (if compileTimeAppSettings^.appReloadTemplates
+widgetFile = (if compileTimeAppSettings^.reloadTemplates
                 then widgetFileReload
                 else widgetFileNoReload)
               widgetFileSettings
@@ -124,12 +127,12 @@ compileTimeAppSettings =
 
 combineStylesheets :: Name -> [Route Static] -> Q Exp
 combineStylesheets = combineStylesheets'
-    (_appSkipCombining compileTimeAppSettings)
+    (_skipCombining compileTimeAppSettings)
     combineSettings
 
 combineScripts :: Name -> [Route Static] -> Q Exp
 combineScripts = combineScripts'
-    (_appSkipCombining compileTimeAppSettings)
+    (_skipCombining compileTimeAppSettings)
     combineSettings
 
 

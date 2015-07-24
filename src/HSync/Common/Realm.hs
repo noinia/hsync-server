@@ -8,8 +8,10 @@ import Control.Lens
 import HSync.Common.Types
 import HSync.Common.AccessPolicy
 import HSync.Common.FileVersion
-import HSync.Common.OrphanInstances
+import HSync.Common.OrphanInstances()
+import HSync.Common.StorageTree(StorageTree,OrdByName)
 import qualified HSync.Common.StorageTree as ST
+import qualified Data.Set as S
 import Data.SafeCopy(base, deriveSafeCopy)
 
 --------------------------------------------------------------------------------
@@ -35,7 +37,7 @@ instance ST.Measured m v => ST.Measured m (RealmNodeData v) where
   measure = ST.measure . NE.head . _versions
 
 
-type GRealmTree m v = ST.StorageTree FileName m (RealmNodeData v)
+type GRealmTree m v = StorageTree FileName m (RealmNodeData v)
 
 
 -- | The tree of data we store
@@ -57,6 +59,24 @@ data Realm = Realm { _realmTree         :: RealmTree
              deriving (Show,Read)
 makeLenses ''Realm
 $(deriveSafeCopy 0 'base ''Realm)
+
+-- | Get the name of the realm, basically the name of the root of the node in
+-- the realm tree.
+realmName :: Lens' Realm RealmName
+realmName = realmTree.ST.name
+
+-- | prepends the realm name to the path
+accessWithRealmName            :: Path -> Realm -> Maybe RealmTree
+accessWithRealmName (Path p) r = access (Path $ r^.realmName : p) r
+
+access          :: Path -> Realm -> Maybe RealmTree
+access (Path p) = ST.access p . _realmTree
+
+current :: Realm -> StorageTree FileName LastModificationTime FileVersion
+current = current' . _realmTree
+
+current' :: RealmTree -> StorageTree FileName LastModificationTime FileVersion
+current' = fmap ST.headVersion
 
 
 addFile            :: Path -> LastModified -> Bool -> FilePath -> Signature
@@ -117,3 +137,22 @@ $(deriveSafeCopy 0 'base ''AccessPoint)
 
 realmRoot   :: RealmId -> AccessPoint
 realmRoot i = AccessPoint i (Path [])
+
+
+--------------------------------------------------------------------------------
+
+
+
+files :: StorageTree n m FileVersion
+      -> [StorageTree n m FileVersion]
+files = childrenByKind isFile
+
+subDirectories :: StorageTree n m FileVersion
+               -> [StorageTree n m FileVersion]
+subDirectories = childrenByKind isDirectory
+
+childrenByKind p = fmap (^.ST.unOrdByName) . S.toAscList . childrenByKind' p
+
+childrenByKind'     :: (FileKind -> Bool) -> StorageTree n m FileVersion
+                   -> S.Set (OrdByName n (StorageTree n m FileVersion))
+childrenByKind' p t = S.filter (^.ST.unOrdByName.ST.nodeData.fileKind.to p) $ t^.ST.children

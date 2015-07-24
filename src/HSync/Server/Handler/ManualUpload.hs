@@ -1,39 +1,50 @@
 module HSync.Server.Handler.ManualUpload where
 
-
+import Data.Monoid(mappend)
 import qualified Data.Char as C
 import qualified Data.List as L
 import qualified Data.Text as T
-
-import           HSync.Common.Types
 import           HSync.Server.Import
-import           Yesod.Core.Types(FileInfo(..))
+import           Control.Lens
 import           Yesod.Form.Bootstrap3(withPlaceholder)
 
 --------------------------------------------------------------------------------
 -- * Manually Add Dir
 
 
+
+createDirectory                     :: RealmId -> Path -> FileKind
+                                    -> Handler (Either ErrorMessage FileVersion)
+createDirectory ri p currentKind = do
+    dt  <- currentTime
+    mui <- (fmap (^.userId)) <$> maybeAuthId
+    case mui of
+      Just ui -> updateAcid $ AddDirectory ri p currentKind (LastModified dt ui webClientId)
+      Nothing -> return $ Left "Error. Create Directory needs a userId"
+
+
 -- | Create a new directory based on the info supplied in the form.
-postWebCreateDirR        :: Path -- ^ Directory in which to add a new directory
-                         -> Handler Html
-postWebCreateDirR parent = undefined
-
-
-  -- do
-  --   ((result,_), _) <- runFormPost addDirForm
-  --   case result of
-  --     FormSuccess n    -> do
-  --                           let p = parent { subPath = subPath parent ++ [n] }
-  --                           _ <- postPutDirR' NonExistent p webClientIdent
-  --                           setMessage $ "Created directory '" <> toHtml n <> "'."
-  --     FormFailure errs -> let e = mconcat $ map toHtml errs
-  --                         in setMessage $ "Error. Could not add directory " <> e
-  --   redirect $ ViewTreeR parent
+-- pre: The path does not already contain a directory or file.
+postWebCreateDirR          :: RealmId
+                           -> Path -- ^ Directory in which to add a new directory
+                           -> Handler Html
+postWebCreateDirR ri parent = do
+    ((result,_), _) <- runFormPost addDirForm
+    case result of
+      FormSuccess n    -> let p = parent&pathParts %~ (++ [n]) in
+        do
+          efv <- createDirectory ri p NonExistent
+                 -- we can only create a directory if it does not exist yet
+          case efv of
+            Left err -> setMessage $ toHtml err
+            Right _  -> setMessage $ "Created directory '" <> toHtml n <> "'."
+      FormFailure errs -> let e = mconcat $ map toHtml errs
+                          in setMessage $ "Error. Could not add directory " <> e
+    redirect $ ViewTreeR ri parent
 
 -- | Code that generates the widget/form which can be used to create a new directory
-webCreateDir        :: Path -> Handler Widget
-webCreateDir parent = do
+webCreateDir           :: RealmId -> Path -> Handler Widget
+webCreateDir ri parent = do
   (widget,enctype) <- generateFormPost addDirForm
   return $ $(widgetFile "webPutDir")
 
@@ -45,10 +56,11 @@ addDirForm = renderDivs $ areq fileNameField
 
 
 fileNameField :: Field Handler FileName
-fileNameField = undefined
---  checkBool isValidFileName msg textField
+fileNameField = checkMMap (return . f) _unFileName textField
   where
-    msg = "Invalid filename" :: Text
+    f t
+      | isValidFileName t = Right $ FileName t
+      | otherwise         = Left $ ("Invalid filename" :: Text)
 
 -- | Check if a filename is valid
 isValidFileName :: Text -> Bool
@@ -65,8 +77,8 @@ isValidFileName = T.all isValidChar
 
 -- | Upload a file from the webiste. If the file with this path already exist
 -- it will be replaced.
-postWebStoreFileR        :: Path -> Handler Html
-postWebStoreFileR parent = undefined
+postWebStoreFileR           :: RealmId -> Path -> Handler Html
+postWebStoreFileR ri parent = error "storefile"
 
   -- do
   --   ((result,_), _) <- runFormPost addFileForm
@@ -82,8 +94,8 @@ postWebStoreFileR parent = undefined
   --   redirect $ ViewTreeR parent
 
 -- | Generate the widget that allows uploading a file
-webStoreFile        :: Path -> Handler Widget
-webStoreFile parent = do
+webStoreFile           :: RealmId -> Path -> Handler Widget
+webStoreFile ri parent = do
   (widget,enctype) <- generateFormPost addFileForm
   return $ $(widgetFile "webPutFile")
 

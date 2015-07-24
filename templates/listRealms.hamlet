@@ -1,0 +1,7 @@
+<h1>Realms
+
+<table>
+  $forall (ri,r) <- realms
+    <tr>
+      <td>#{show ri}
+      <td>#{show r}

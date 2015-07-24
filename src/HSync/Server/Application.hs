@@ -35,6 +35,7 @@ import HSync.Server.Handler.Common
 import HSync.Server.Handler.Home
 import HSync.Server.Handler.ManualUpload
 import HSync.Server.Handler.ViewTree
+import HSync.Server.Handler.User
 
 -- This line actually creates our YesodDispatch instance. It is the second half
 -- of the call to mkYesodData which occurs in Foundation.hs. Please see the
@@ -52,8 +53,8 @@ makeFoundation _appSettings _appAcids = do
     _appHttpManager <- newManager
     _appLogger <- newStdoutLoggerSet defaultBufSize >>= makeYesodLogger
     _appStatic <-
-        (if _appMutableStatic _appSettings then staticDevel else static)
-        (_appStaticDir _appSettings)
+        (if _appSettings^.mutableStatic then staticDevel else static)
+        (_appSettings^.staticDir)
 
     -- Return the foundation
     return $ App {..}
@@ -64,13 +65,13 @@ makeApplication :: App -> IO Application
 makeApplication foundation = do
     logWare <- mkRequestLogger def
         { outputFormat =
-            if _appDetailedRequestLogging $ _appSettings foundation
+            if foundation^.appSettings.detailedRequestLogging
                 then Detailed True
                 else Apache
-                        (if _appIpFromHeader $ _appSettings foundation
+                        (if foundation^.appSettings.ipFromHeader
                             then FromFallback
                             else FromSocket)
-        , destination = Logger $ loggerSet $ _appLogger foundation
+        , destination = Logger $ loggerSet $ foundation^.appLogger
         }
 
     -- Create the WAI application and apply middlewares
@@ -80,8 +81,8 @@ makeApplication foundation = do
 -- | Warp settings for the given foundation value.
 warpSettings :: App -> Settings
 warpSettings foundation =
-      setPort (foundation^.appSettings.appPort)
-    $ setHost (foundation^.appSettings.appHost)
+      setPort (foundation^.appSettings.port)
+    $ setHost (foundation^.appSettings.host)
     $ setOnException (\_req e ->
         when (defaultShouldDisplayException e) $ messageLoggerSource
             foundation
@@ -93,21 +94,21 @@ warpSettings foundation =
       defaultSettings
 
 -- | For yesod devel, return the Warp settings and WAI Application.
-getApplicationDev :: IO (Settings, Application)
-getApplicationDev = do
+getApplicationDev       :: Acids -> IO (Settings, Application)
+getApplicationDev acids = do
     settings <- getAppSettings
-    withAcids (settings^.appAcidStatePath) $ \acids -> do
-      foundation <- makeFoundation settings acids
-      wsettings <- getDevSettings $ warpSettings foundation
-      app <- makeApplication foundation
-      return (wsettings, app)
+    foundation <- makeFoundation settings acids
+    wsettings <- getDevSettings $ warpSettings foundation
+    app <- makeApplication foundation
+    return (wsettings, app)
 
 getAppSettings :: IO AppSettings
 getAppSettings = loadAppSettings [configSettingsYml] [] useEnv
 
 -- | main function for use by yesod devel
 develMain :: IO ()
-develMain = develMainHelper getApplicationDev
+develMain = withAcids Nothing $ \acids -> do
+  develMainHelper (getApplicationDev acids)
 
 -- | The @main@ function for an executable running this site.
 appMain :: IO ()
@@ -120,7 +121,7 @@ appMain = do
         -- allow environment variables to override
         useEnv
 
-    withAcids (settings^.appAcidStatePath) $ \acids -> do
+    withAcids (settings^.acidStatePath) $ \acids -> do
       -- Generate the foundation from the settings
       foundation <- makeFoundation settings acids
 
@@ -137,7 +138,7 @@ appMain = do
 getApplicationRepl :: IO (Int, App, Application)
 getApplicationRepl = do
     settings <- getAppSettings
-    withAcids (settings^.appAcidStatePath) $ \acids -> do
+    withAcids (settings^.acidStatePath) $ \acids -> do
       foundation <- makeFoundation settings acids
       wsettings <- getDevSettings $ warpSettings foundation
       app1 <- makeApplication foundation
@@ -155,7 +156,7 @@ shutdownApp _ = return ()
 handler :: Handler a -> IO a
 handler h = do
     settings <- getAppSettings
-    withAcids (settings^.appAcidStatePath) $ \acids -> do
+    withAcids (settings^.acidStatePath) $ \acids -> do
       foundation <- makeFoundation settings acids
       unsafeHandler foundation h
 

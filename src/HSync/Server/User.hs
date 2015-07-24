@@ -1,5 +1,21 @@
 {-# OPTIONS_GHC -fno-warn-orphans #-}
-module HSync.Server.User where
+module HSync.Server.User( UserIndex(..)
+                          -- * Acididic Operations
+                        , QueryUserIndex(..)
+                        , LookupUserByName(..)
+                        , InsertUser(..)
+                        , UpdateUser(..)
+
+                          -- * RegisterUser
+                        , RegisterUser(..)
+
+                          -- * Re-exports from Common.User:
+                        , User(User), userId, userName, realName, password, clients, realms
+
+                        , Client(Client), clientId, clientName
+
+                        , addRealm
+                        ) where
 
 import qualified Data.Set as S
 
@@ -13,7 +29,7 @@ import Data.IxSet
 import Control.Monad.State.Class
 import Control.Monad.Reader.Class
 import qualified Data.IxSet as I
-import Data.Acid( Query(..), Update(..), makeAcidic)
+import Data.Acid(Query, Update, makeAcidic)
 import Data.SafeCopy(base, deriveSafeCopy)
 
 
@@ -27,7 +43,7 @@ instance Indexable User where
 --------------------------------------------------------------------------------
 
 -- | Users have a unique userId and a unique username
-data UserIndex = UserIndex { _userList   :: IxSet User
+data UserIndex = UserIndex { _userIxSet  :: IxSet User
                            , _nextUserId :: UserId
                            }
                   deriving (Show,Read,Eq)
@@ -42,8 +58,8 @@ data RegisterUser = RegisterUser { reqUserName     :: UserName
                                  , reqRealName     :: RealName
                                  , reqHashedPasswd :: HashedPassword
                                  }
+                    deriving (Show,Eq)
 $(deriveSafeCopy 0 'base ''RegisterUser)
-
 
 
 
@@ -60,14 +76,14 @@ insertUser    :: RegisterUser
               -> Update UserIndex (Either ErrorMessage (User,UserIndex))
 insertUser ru = do
                   idx <- get
-                  case lookupUserByName' (reqUserName ru) idx of
-                    Just _  -> return $ Left "Username already taken."
-                    Nothing -> let (u,idx') = insertUser' ru idx
+                  case I.toList $ (idx^.userIxSet) @= (reqUserName ru) of
+                    [] -> let (u,idx') = insertUser' ru idx
                                in do put idx' ; return $ Right (u,idx')
+                    _  -> return $ Left "Username already taken."
 
 
 updateUser   :: User -> Update UserIndex ()
-updateUser u = modify (&userList %~ I.insert u)
+updateUser u = modify (&userIxSet %~ I.updateIx (u^.userId) u)
 
 
 --------------------------------------------------------------------------------

@@ -21,6 +21,9 @@ import HSync.Server.LocalAuth
 import HSync.Server.AcidState
 import HSync.Common.AcidState
 import qualified Data.Map as M
+import qualified Data.Set as S
+
+--------------------------------------------------------------------------------
 
 -- | The foundation datatype for your application. This can be a good place to
 -- keep settings and values requiring initialization before your application
@@ -36,6 +39,7 @@ data App = App
 makeLenses ''App
 
 
+getStatic :: App -> Static
 getStatic = _appStatic
 
 getAcids :: HandlerT App IO Acids
@@ -90,6 +94,7 @@ instance Yesod App where
         -- you to use normal widget features in default-layout.
 
         pc <- widgetToPageContent $ do
+                setTitle "Welcome To HSync!"
                 $(combineStylesheets 'StaticR [ css_bootstrap_css --  css_normalize_css
                                               ])
                 $(widgetFile "default-layout")
@@ -127,7 +132,7 @@ instance Yesod App where
     -- users receiving stale content.
     addStaticContent ext mime content = do
         master <- getYesod
-        let staticDir = _appStaticDir $ _appSettings master
+        let staticDir = _staticDir $ _appSettings master
         addStaticContentExternal
             minifym
             genFileName
@@ -143,11 +148,38 @@ instance Yesod App where
     -- What messages should be logged. The following includes all messages when
     -- in development, and warnings and errors in production.
     shouldLog app _source level =
-        app^.appSettings.appShouldLogAll
+        app^.appSettings.shouldLogAll
             || level == LevelWarn
             || level == LevelError
 
     makeLogger = return . _appLogger
+
+
+
+
+jumbotronLayout jumboContent mainContent = do
+        -- master <- getImplementation
+        mmsg   <- getMessage
+        muser  <- maybeAuthId
+
+        let loginR'     = AuthR loginR
+            userMenu    = maybe $(widgetFile "loginForm")
+                                (\user -> $(widgetFile "userLoggedIn"))
+                                muser
+        -- We break up the default layout into two components:
+        -- default-layout is the contents of the body tag, and
+        -- default-layout-wrapper is the entire page. Since the final
+        -- value passed to hamletToRepHtml cannot be a widget, this allows
+        -- you to use normal widget features in default-layout.
+
+        pc <- widgetToPageContent $ do
+                setTitle "Welcome To HSync!"
+                $(combineStylesheets 'StaticR [ css_bootstrap_css --  css_normalize_css
+                                              ])
+                $(widgetFile "jumbotron-layout")
+        withUrlRenderer $(hamletFile "templates/default-layout-wrapper.hamlet")
+
+
 
 
 -- How to access the stuff that we store using acid state
@@ -156,7 +188,7 @@ instance HasAcidState (HandlerT App IO) Realms where
   getAcidState = _serverRealms <$> getAcids
 
 instance HasAcidState (HandlerT App IO) UserIndex where
-  getAcidState = _users <$> getAcids
+  getAcidState = _userIndex <$> getAcids
 
 
 instance YesodLocalAuth App where
@@ -170,7 +202,7 @@ createHomeRealm u = do dt <- currentTime
                        updateAcid . UpdateUser $ addRealm (realmRoot ri) u
   where
     rn  = FileName $ u^.userName.unUserName
-    ap  = [AccessUser $ M.singleton (u^.userId) [Read,Write]]
+    ap  = [AccessUser $ M.singleton (u^.userId) (S.fromList [Read,Write])]
 
 instance YesodAuth App where
     type AuthId App = User
@@ -186,7 +218,9 @@ instance YesodAuth App where
 
     authenticate creds = case validateUserName . credsIdent $ creds of
                            Left _   -> return $ UserError InvalidLogin
-                           Right un -> lookupUser un
+                           Right un -> do
+                                         print un
+                                         lookupUser un
 
     maybeAuthId = do
       m <- lookupSession credsKey

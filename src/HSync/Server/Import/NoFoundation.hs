@@ -2,7 +2,9 @@ module HSync.Server.Import.NoFoundation
     ( module Import
     ) where
 
-import ClassyPrelude.Yesod  as Import hiding (Update,Query,get,delete,update,update')
+import ClassyPrelude.Yesod  as Import hiding (Update,Query,get,delete,update,update'
+                                             , host, port
+                                             )
 -- import HSync.Server.Model                 as Import
 import HSync.Server.Settings              as Import
 import HSync.Server.Settings.StaticFiles  as Import

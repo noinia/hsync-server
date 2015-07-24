@@ -1,6 +1,6 @@
 module HSync.Common.User where
 
-import Data.Data(Data,Typeable)
+import Data.Data(Typeable)
 import ClassyPrelude.Yesod
 import HSync.Common.Types
 import HSync.Common.Realm
@@ -24,12 +24,12 @@ $(deriveSafeCopy 0 'base ''Client)
 makeLenses ''Client
 
 
-data User = User { _userId   :: UserId
-                 , _userName :: UserName
-                 , _realName :: RealName
-                 , password  :: HashedPassword
-                 , _clients  :: Set (Client)
-                 , _realms   :: Set (AccessPoint)
+data User = User { _userId    :: UserId
+                 , _userName  :: UserName
+                 , _realName  :: RealName
+                 , _password  :: HashedPassword
+                 , _clients   :: Set (Client)
+                 , _realms    :: Set (AccessPoint)
                  }
             deriving (Show,Read,Eq,Ord,Typeable)
 $(deriveSafeCopy 0 'base ''User)

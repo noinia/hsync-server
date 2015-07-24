@@ -1,0 +1,8 @@
+<h1>Node Data
+
+<table>
+  <tr>
+    <td>Realm:
+    <td>#{show ri}
+
+#{show node}

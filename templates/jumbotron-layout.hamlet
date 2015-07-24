@@ -15,10 +15,17 @@
 $maybe msg <- mmsg
   <div #message>#{msg}
 
-<div .container>
-  <div .starter-template>
+<div class="main">
+
+  <div class="jumbotron">
+    <div class="container">
+      ^{jumboContent}
+
+  <div class="container">
     ^{mainContent}
+
+
 
 <footer class="navbar navbar-fixed-bottom navbar-inverse">
   <div class="container">
-    <p class="navbar-text">&copy; FStaals.net 2015
+    <p class="navbar-text">&copy; FStaals.net 2014

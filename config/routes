@@ -5,11 +5,14 @@
 /                                 HomeR           GET
 
 
-/view/tree/*Path                  ViewTreeR       GET
-/view/state/*Path                 ViewStateR      GET
+/view/tree/#RealmId/*Path         ViewTreeR       GET
 
-/create/directory/*Path           WebCreateDirR   POST
-/store/file/*Path                 WebStoreFileR   POST
+/create/directory/#RealmId/*Path  WebCreateDirR   POST
+/store/file/#RealmId/*Path        WebStoreFileR   POST
+
+
+/admin/users                      ListUsersR      GET
+/admin/realms                     ListRealmsR     GET
 
 /favicon.ico                      FaviconR        GET
 /robots.txt                       RobotsR         GET

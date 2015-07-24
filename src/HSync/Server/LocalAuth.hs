@@ -9,7 +9,6 @@ import Control.Lens
 import HSync.Common.Types
 import HSync.Common.AcidState
 import HSync.Server.Settings(widgetFile)
-import HSync.Common.User
 import HSync.Server.User
 
 import Yesod
@@ -30,7 +29,7 @@ validateUser       :: AcidMonad m LookupUserByName
                    => UserName -> HashedPassword -> m Bool
 validateUser ui pw = maybe False checkPassword <$> queryAcid (LookupUserByName ui)
   where
-    checkPassword u = pw == password u
+    checkPassword u = pw == u^.password
 
 
 userExists   :: AcidMonad m LookupUserByName => UserName -> m Bool
@@ -77,7 +76,7 @@ $newline never
        action="@{authToMaster loginR}">
 
     <div class="form-group">
-      <input type="text" name="userIdent" placeholder="Username" class="form-control">
+      <input type="text" name="userName" placeholder="Username" class="form-control">
 
     <div class="form-group">
       <input type="password" name="password" placeholder="Password" class="form-control">
@@ -134,6 +133,7 @@ postRegisterR :: ( RenderMessage master FormMessage
 postRegisterR = do
     ((result, _), _) <- lift $ runFormPost registerForm
     tp <- getRouteToParent
+    liftIO $ print result
     case result of
       FormSuccess u -> lift $ tryInsert u (tp registerR)
       _             -> invalidInput
@@ -147,9 +147,12 @@ tryInsert :: ( RenderMessage master FormMessage
              )
              => RegisterUser -> Route master -> HandlerT master IO TypedContent
 tryInsert ru redir = updateAcid (InsertUser ru) >>= \case
-      Left err    -> loginErrorMessage redir err
+      Left err    -> do liftIO $ print err
+                        loginErrorMessage redir err
       Right (u,_) -> do
+                       liftIO $ putStrLn "foo"
                        onRegister u
+                       liftIO $ putStrLn "foo"
                        setCredsRedirect $ Creds "local" (u^.userName.unUserName) []
 
 

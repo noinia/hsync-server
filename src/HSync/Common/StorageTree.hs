@@ -1,5 +1,8 @@
 {-# LANGUAGE FunctionalDependencies #-}
 {-# LANGUAGE FlexibleInstances #-}
+{-# LANGUAGE DeriveFunctor #-}
+{-# LANGUAGE DeriveFoldable #-}
+{-# LANGUAGE DeriveTraversable #-}
 module HSync.Common.StorageTree where
 
 import Control.Applicative
@@ -21,7 +24,7 @@ class Semigroup m => Measured m a | a -> m where
   measure :: a -> m
 
 newtype OrdByName n a = OrdByName { _unOrdByName :: a }
-                      deriving (Show,Read)
+                      deriving (Show,Read,Functor,Traversable,Foldable)
 
 makeLenses ''OrdByName
 $(deriveSafeCopy 0 'base ''OrdByName)
@@ -45,13 +48,16 @@ data StorageTree n m a = Node { _name        :: n
 
 makeLenses ''StorageTree
 
+instance Functor (StorageTree n m) where
+  fmap f (Node n m a chs) = Node n m (f a) (S.mapMonotonic (fmap (fmap f)) chs)
+
+
 -- Bleh, because of the constraint on n we cannot derive a safecopy instance
 -- $(deriveSafeCopy 0 'base ''StorageTree)
 
 instance (Ord n, SafeCopy n, SafeCopy m, SafeCopy a) => SafeCopy (StorageTree n m a) where
   putCopy (Node n m d chs) = contain $ do safePut n; safePut m; safePut d; safePut chs
   getCopy = contain $ Node <$> safeGet <*> safeGet <*> safeGet <*> safeGet
-
 
 
 -- deriving instance (Eq n, Eq m, Eq a) => Eq (StorageTree n m a)
@@ -67,8 +73,13 @@ instance Measured m a => Measured m (StorageTree n m a) where
 
 --------------------------------------------------------------------------------
 
+-- | Traverses the tree and centers on the given path. An empty path returns the root
+access                         :: Ord n
+                               => Path n -> StorageTree n m a -> Maybe (StorageTree n m a)
+access []     t                = Just t
+access (p:ps) (Node _ _ _ chs) = lookupByName p chs >>= access ps
 
--- Updates the element by applying the given function to it. Any intermediate
+-- | Updates the element by applying the given function to it. Any intermediate
 -- nodes are created if they do not exist. Furthermore, all measurements on the
 -- path to the root are updated.
 updateAt                           :: (Measured m a, Ord n)

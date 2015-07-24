@@ -4,7 +4,7 @@ import Prelude
 import HSync.Common.Types
 import qualified Data.Map as M
 import Data.SafeCopy(base, deriveSafeCopy)
-
+import qualified Data.Set as S
 --------------------------------------------------------------------------------
 
 data AccessRight = Read | Write
@@ -13,9 +13,9 @@ $(deriveSafeCopy 0 'base ''AccessRight)
 
 
 
-data AccessOption = AccessUser     (M.Map UserId [AccessRight])
-                  | AccessHash     HashedURL     [AccessRight]
-                  | AccessPassword Password      [AccessRight]
+data AccessOption = AccessUser     (M.Map UserId (S.Set AccessRight))
+                  | AccessHash     HashedURL     (S.Set AccessRight)
+                  | AccessPassword Password      (S.Set AccessRight)
                   deriving (Show,Read,Eq)
 $(deriveSafeCopy 0 'base ''AccessOption)
 

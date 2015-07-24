@@ -1,5 +1,5 @@
 <div .putDir>
-  <form method=post action=@{WebCreateDirR parent} enctype=#{enctype}>
+  <form method=post action=@{WebCreateDirR ri parent} enctype=#{enctype}>
     ^{widget}
     <button type="submit" .btn .btn-success>Create Directory
 

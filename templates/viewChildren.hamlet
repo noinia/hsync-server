@@ -1,0 +1,15 @@
+^{createDirWidget}
+
+^{storeFileWidget}
+
+<h1>Content
+
+<table>
+  <tbody>
+    $forall c <- chs
+      <tr>
+        <td><span .glyphicon .glyphicon-file aria-hidden="true">
+        <td><a href=@{ViewTreeR ri (pathOf c)}> #{view name c}</a>
+        <td><span .glyphicon .glyphicon-download-alt aria-hidden="true">
+        <td><span .glyphicon .glyphicon-search aria-hidden="true">
+        <td><span .glyphicon .glyphicon-remove aria-hidden="true">
