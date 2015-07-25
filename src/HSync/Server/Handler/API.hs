@@ -1,5 +1,6 @@
 module HSync.Server.Handler.API where
 
+import Control.Lens
 import HSync.Common.API
 import HSync.Server.Import
 import HSync.Server.Handler.AcidUtils
@@ -39,10 +40,12 @@ getFileR ri s p = do
                     fp <- lift $ getFilePath ri p s
                     sendFile (contentTypeOf p) fp
 
-getLatestFileR      :: RealmId -> Path -> APIHandler TypedContent
-getLatestFileR ri p = undefined --- return ()
-
-
+getDownloadCurrentR      :: RealmId -> Path -> APIHandler TypedContent
+getDownloadCurrentR ri p = do
+                             mr <- lift . queryAcid $ Access ri p
+                             case (^.nodeData.headVersionLens.fileKind) <$> mr of
+                               Nothing  -> notFound
+                               Just fk  -> getDownloadR ri fk p
 
 
 --------------------------------------------------------------------------------
