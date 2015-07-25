@@ -1,4 +1,5 @@
 {-# OPTIONS_GHC -fno-warn-orphans #-}
+{-# LANGUAGE FlexibleInstances #-}
 module HSync.Server.Application
     ( getApplicationDev
     , appMain
@@ -36,11 +37,19 @@ import HSync.Server.Handler.Home
 import HSync.Server.Handler.ManualUpload
 import HSync.Server.Handler.Realm
 import HSync.Server.Handler.User
+import HSync.Server.Handler.API
+
+--------------------------------------------------------------------------------
+
+instance YesodSubDispatch HSyncAPI (HandlerT App IO) where
+  yesodSubDispatch = $(mkYesodSubDispatch resourcesHSyncAPI)
 
 -- This line actually creates our YesodDispatch instance. It is the second half
 -- of the call to mkYesodData which occurs in Foundation.hs. Please see the
 -- comments there for more details.
 mkYesodDispatch "App" resourcesApp
+
+
 
 -- | This function allocates resources (such as a database connection pool),
 -- performs initialization and return a foundation datatype value. This is also

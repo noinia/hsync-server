@@ -1,7 +1,7 @@
 <h1>Realms
 
 <table>
-  $forall (ri,r) <- realms
+  $forall (ri,r) <- allRealms
     <tr>
       <td>#{show ri}
       <td>#{show r}

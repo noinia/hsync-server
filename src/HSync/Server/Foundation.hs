@@ -9,17 +9,13 @@ import Yesod.Default.Util   (addStaticContentExternal)
 import Yesod.Core.Types     (Logger)
 import qualified Yesod.Core.Unsafe as Unsafe
 import Control.Lens
-import HSync.Common.Types
-import HSync.Common.User
-import HSync.Common.FileVersion
-import HSync.Common.AccessPolicy
-import HSync.Common.DateTime(currentTime)
 import HSync.Server.User
 import HSync.Server.Realm
-import HSync.Common.Realm(realmRoot)
 import HSync.Server.LocalAuth
 import HSync.Server.AcidState
 import HSync.Common.AcidState
+import HSync.Common.API
+
 import qualified Data.Map as M
 import qualified Data.Set as S
 
@@ -44,6 +40,9 @@ getStatic = _appStatic
 
 getAcids :: HandlerT App IO Acids
 getAcids = _appAcids <$> getYesod
+
+getHSyncAPI :: App -> HSyncAPI
+getHSyncAPI = const HSyncAPI
 
 
 instance HasHttpManager App where

@@ -13,7 +13,8 @@ module HSync.Server.Realm( Realms(Realms), realmMap, nextRealmId
                            -- * Re-exports from Common.Realm:
                          , Realm(Realm), realmTree, realmAccessPolicy
                          , Realm.RealmNodeData(RealmNodeData), versions, accessPolicy
-                         , RealmTree, Realm.current'
+                         , RealmTree, Realm.current', Realm.realmRoot
+
 
                          ) where
 

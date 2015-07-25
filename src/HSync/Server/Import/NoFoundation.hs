@@ -18,3 +18,4 @@ import HSync.Common.FileVersion              as Import
 import HSync.Common.AcidState                as Import
 import HSync.Common.AccessPolicy             as Import
 import HSync.Common.DateTime                 as Import
+import HSync.Common.API                      as Import

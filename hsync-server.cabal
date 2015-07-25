@@ -30,7 +30,10 @@ library
                      HSync.Server.Handler.Realm
                      HSync.Server.Handler.User
                      HSync.Server.Handler.FileUtils
+                     HSync.Server.Handler.API
+                     HSync.Server.Handler.AcidUtils
 
+                     HSync.Common.API
                      HSync.Common.AcidState
                      HSync.Common.AccessPolicy
                      HSync.Common.DateTime

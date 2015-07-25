@@ -1,5 +1,5 @@
 .putFile {
-
+    padding-top: 5px;
 }
 
 .putFile label {

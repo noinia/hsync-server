@@ -48,7 +48,7 @@ instance ToMarkup Path where
 
 
 newtype ClientId = ClientId Integer
-                   deriving (Show,Read,Eq,Ord,ToMarkup,Typeable)
+                   deriving (Show,Read,Eq,Ord,ToMarkup,Typeable,PathPiece)
 $(deriveSafeCopy 0 'base ''ClientId)
 
 newtype ClientName = ClientName Text

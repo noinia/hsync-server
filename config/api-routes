@@ -1,14 +1,17 @@
-/login                                     MyLoginR        POST
+/login                                               APILoginR       POST
 
 
-/listen/now/#RealmId/*Path                 ListenNowR      GET
-/listen/from/#UTCTime/#RealmId/*Path       ListenR         GET
+/listen/now/#RealmId/*Path                           ListenNowR      GET
+/listen/from/#DateTime/#RealmId/*Path                ListenR         GET
 
-/tree/#RealmId/*Path                       TreeR           GET
-/file/#RealmId/*Path                       FileR           GET
+/realm/#RealmId/*Path                                RealmR          GET
 
-/store/directory/#RealmId/*Path            CreateDirR      POST
-/store/file/#RealmId/#Signature/*Path      StoreFileR      POST
+/file/version/#RealmId/#Signature/*Path              FileR           GET
+/file/latest/#RealmId/*Path                          LatestFileR     GET
+/download/#RealmId/#FileKind/*Path                   DownloadR       GET
 
-/delete/directory/#RealmId/*Path           DeleteDirR      DELETE
-/delete/file/#RealmId/#Signature/*Path     DeleteFileR     DELETE
+/store/directory/#ClientId/#RealmId/*Path            CreateDirR      POST
+/store/file/#ClientId/#RealmId/#Signature/*Path      StoreFileR      POST
+
+/delete/directory/#ClientId/#RealmId/*Path           DeleteDirR      DELETE
+/delete/file/#ClientId/#RealmId/#Signature/*Path     DeleteFileR     DELETE

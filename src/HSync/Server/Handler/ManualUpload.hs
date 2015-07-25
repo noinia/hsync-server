@@ -1,10 +1,10 @@
-{-# LANGUAGE LambdaCase #-}
 module HSync.Server.Handler.ManualUpload where
 
 import qualified Data.Char as C
 import qualified Data.List as L
 import qualified Data.Text as T
 import           HSync.Server.Import
+import           HSync.Server.Handler.AcidUtils
 import           Control.Lens
 import           Yesod.Form.Bootstrap3(withPlaceholder)
 import           Yesod.Core.Types(FileInfo(..))
@@ -23,7 +23,7 @@ postWebCreateDirR ri parent = do
     case result of
       FormSuccess n    -> let p = parent&pathParts %~ (++ [n]) in
         do
-          efv <- createDirectory ri p NonExistent
+          efv <- createDirectory webClientId ri p NonExistent
                  -- we can only create a directory if it does not exist yet
           case efv of
             Left err -> setMessage $ toHtml err
@@ -74,7 +74,7 @@ postWebStoreFileR ri parent = do
       FormSuccess fInfo -> do
           let n = FileName $ fileName fInfo
               p = parent&pathParts %~ (++ [n])
-          efv <- addFile ri p NonExistent fInfo
+          efv <- addFile webClientId ri p NonExistent (fileSourceRaw fInfo)
                  -- we can only create a File if it does not exist yet
           case efv of
             Left err -> setMessage $ toHtml err
@@ -100,41 +100,8 @@ addFileForm = renderDivs $ areq fileField "Upload File" Nothing
 
 getWebDeleteR         :: RealmId -> FileKind -> Path -> Handler Html
 getWebDeleteR ri fk p = do
-  ev <- deleteFileOrDir ri p fk
+  ev <- deleteFileOrDir webClientId ri p fk
   case ev of
     Left err -> setMessage $ "Error. Could not delete file or directory " <> toHtml p
     Right _  -> setMessage $ "Deleted " <> toHtml p
   redirect $ ViewRealmR ri (parentOf p)
-
---------------------------------------------------------------------------------
--- * Actual implementations for these things
-
-addFile                        :: RealmId -> Path -> FileKind -> FileInfo
-                               -> Handler (Either ErrorMessage FileVersion)
-addFile ri p currentKind fInfo = do
-    (_,sig) <- storeFile ri p (fileSourceRaw fInfo)
-    elm     <- getLastModified
-    case elm of
-      Left err -> return $ Left err
-      Right lm -> updateAcid $ AddFile ri p currentKind lm True sig
-
-getLastModified :: Handler (Either ErrorMessage LastModified)
-getLastModified = do
-    dt  <- currentTime
-    mui <- (fmap (^.userId)) <$> maybeAuthId
-    return $ case mui of
-      Just ui -> Right $ LastModified dt ui webClientId
-      Nothing -> Left "Error: We need a UserId to create a LastModified"
-
-createDirectory                     :: RealmId -> Path -> FileKind
-                                    -> Handler (Either ErrorMessage FileVersion)
-createDirectory ri p currentKind = getLastModified >>= \case
-    Left err -> return $ Left err
-    Right lm -> updateAcid $ AddDirectory ri p currentKind lm
-
-
-deleteFileOrDir                  :: RealmId -> Path -> FileKind
-                                 -> Handler (Either ErrorMessage FileVersion)
-deleteFileOrDir ri p currentKind = getLastModified >>= \case
-    Left err -> return $ Left err
-    Right lm -> updateAcid $ Delete ri p currentKind lm

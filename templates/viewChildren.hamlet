@@ -11,7 +11,7 @@
         <td .file .icon>#{iconOf c}
         <td .fileName><a href=@{ViewRealmR ri (pathOf c)}> #{view name c}</a>
         <td .download .icon>
-          <a href="#">
+          <a href=@{APIR $ DownloadR ri (fileKindOf c) (pathOf c)}>
             <span class="glyphicon glyphicon-download-alt" aria-hidden="true"></a>
         <td .inspect .icon>
           <a href=@{ViewRealmR ri (pathOf c)}>
