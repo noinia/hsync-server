@@ -4,10 +4,10 @@
 /listen/now/#RealmId/*Path                           ListenNowR      GET
 /listen/from/#DateTime/#RealmId/*Path                ListenR         GET
 
-/realm/#RealmId/*Path                                RealmR          GET
+/realm/#RealmId/*Path                                CurrentRealmR   GET
 
 /file/version/#RealmId/#Signature/*Path              FileR           GET
-/file/latest/#RealmId/*Path                          LatestFileR     GET
+/file/current/#RealmId/*Path                         LatestFileR     GET
 /download/#RealmId/#FileKind/*Path                   DownloadR       GET
 
 /store/directory/#ClientId/#RealmId/*Path            CreateDirR      POST

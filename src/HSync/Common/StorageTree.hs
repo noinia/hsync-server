@@ -5,6 +5,9 @@
 {-# LANGUAGE DeriveTraversable #-}
 module HSync.Common.StorageTree where
 
+import Data.Data(Data,Typeable)
+import Data.Aeson
+import Data.Aeson.TH
 import Control.Applicative
 import Prelude
 import Control.Lens
@@ -12,6 +15,9 @@ import Data.Semigroup
 import Data.Set(Set)
 import qualified Data.Set as S
 import Data.SafeCopy
+
+import qualified Data.HashMap.Strict as HM
+
 
 --------------------------------------------------------------------------------
 
@@ -24,7 +30,8 @@ class Semigroup m => Measured m a | a -> m where
   measure :: a -> m
 
 newtype OrdByName n a = OrdByName { _unOrdByName :: a }
-                      deriving (Show,Read,Functor,Traversable,Foldable)
+                      deriving (Show,Read,Functor,Traversable,Data,Typeable
+                               ,Foldable,ToJSON,FromJSON)
 
 makeLenses ''OrdByName
 $(deriveSafeCopy 0 'base ''OrdByName)
@@ -44,8 +51,7 @@ data StorageTree n m a = Node { _name        :: n
                               , _nodeData    :: a
                               , _children    :: Set (OrdByName n (StorageTree n m a))
                               }
-                         deriving (Show,Read)
-
+                         deriving (Show,Read,Data,Typeable)
 makeLenses ''StorageTree
 
 instance Functor (StorageTree n m) where
@@ -60,9 +66,24 @@ instance (Ord n, SafeCopy n, SafeCopy m, SafeCopy a) => SafeCopy (StorageTree n 
   getCopy = contain $ Node <$> safeGet <*> safeGet <*> safeGet <*> safeGet
 
 
--- deriving instance (Eq n, Eq m, Eq a) => Eq (StorageTree n m a)
+instance (Ord n, ToJSON n, ToJSON m, ToJSON a) => ToJSON (StorageTree n m a) where
+  toJSON (Node n m d chs) = Object . HM.singleton "Node" $ (Object . HM.fromList $
+                              [ ("name",        toJSON n)
+                              , ("measurement", toJSON m)
+                              , ("nodeData",    toJSON d)
+                              , ("children",    toJSON . S.toAscList $ chs)
+                              ])
 
-
+instance (Ord n, FromJSON n, FromJSON m, FromJSON a) => FromJSON (StorageTree n m a) where
+  parseJSON (Object o) = maybe mempty parse . HM.lookup "Node" $ o
+    where
+      parse (Object v) = (\n m d chs -> Node n m d (S.fromAscList chs))
+                      <$> v .: "name"
+                      <*> v .: "measurement"
+                      <*> v .: "nodeData"
+                      <*> v .: "children"
+      parse _          = mempty
+  parseJSON _          = mempty
 
 
 instance Measured m a => Measured m (StorageTree n m a) where

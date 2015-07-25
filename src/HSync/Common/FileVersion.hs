@@ -2,6 +2,7 @@
 {-# LANGUAGE FlexibleInstances #-}
 module HSync.Common.FileVersion where
 
+import Data.Aeson.TH
 import ClassyPrelude.Yesod
 import Control.Lens
 import HSync.Common.Types
@@ -24,6 +25,11 @@ instance SafeCopy LastModificationTime where
 instance ToMarkup LastModificationTime where
   toMarkup = toMarkup . getMax . _unLMT
 
+instance ToJSON LastModificationTime where
+  toJSON = toJSON . getMax . _unLMT
+
+instance FromJSON LastModificationTime where
+  parseJSON = fmap (LastModificationTime . Max) . parseJSON
 
 --------------------------------------------------------------------------------
 
@@ -33,6 +39,9 @@ data FileKind = Directory
               deriving (Show,Read,Eq)
 makePrisms ''FileKind
 $(deriveSafeCopy 0 'base ''FileKind)
+$(deriveJSON defaultOptions ''FileKind)
+
+
 
 
 instance PathPiece FileKind where
@@ -72,6 +81,7 @@ data LastModified = LastModified { _modificationTime :: DateTime
                     deriving (Show,Read,Eq)
 makeLenses ''LastModified
 $(deriveSafeCopy 0 'base ''LastModified)
+$(deriveJSON defaultOptions ''LastModified)
 
 
 instance Measured LastModificationTime LastModified where
@@ -91,6 +101,7 @@ data FileVersion = FileVersion { _fileKind      :: FileKind
                  deriving (Show,Read,Eq)
 makeLenses ''FileVersion
 $(deriveSafeCopy 0 'base ''FileVersion)
+$(deriveJSON defaultOptions ''FileVersion)
 
 
 instance Measured LastModificationTime FileVersion where

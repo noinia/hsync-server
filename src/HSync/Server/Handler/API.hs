@@ -21,12 +21,15 @@ getListenR = undefined
 
 --------------------------------------------------------------------------------
 
-getRealmR :: RealmId -> Path -> APIHandler TypedContent
-getRealmR ri p = undefined
-
+getCurrentRealmR      :: RealmId -> Path -> APIHandler Value
+getCurrentRealmR ri p = do
+                          mr <- lift . queryAcid $ Access ri p
+                          case mr of
+                            Nothing   -> notFound
+                            Just node -> pure . toJSON . current' $ node
 
 getDownloadR                  :: RealmId -> FileKind -> Path -> APIHandler TypedContent
-getDownloadR _  NonExistent _ = typedText_ ("NonExistent file" :: Text)
+getDownloadR _  NonExistent _ = notFound
 getDownloadR ri Directory   p = typedText_ ("Directory" :: Text)
 getDownloadR ri (File s)    p = getFileR ri s p
 
@@ -44,30 +47,28 @@ getLatestFileR ri p = undefined --- return ()
 
 --------------------------------------------------------------------------------
 
-postCreateDirR         :: ClientId -> RealmId -> Path -> APIHandler TypedContent
-postCreateDirR ci ri p = undefined
+postCreateDirR         :: ClientId -> RealmId -> Path -> APIHandler Value
+postCreateDirR ci ri p = toJSON <$> lift (createDirectory ci ri p NonExistent)
 
 
 postStoreFileR             :: ClientId -> RealmId -> Signature -> Path
-                           -> APIHandler TypedContent
-postStoreFileR ci ri sig p = do
-                               er <- lift $ addFile ci ri p (File sig) rawRequestBody
-                               case er of
-                                 Left err -> typedText_ err
-                                 Right _  -> typedText_ "OK"
+                           -> APIHandler Value
+postStoreFileR ci ri sig p = toJSON <$> lift (addFile ci ri p (File sig) rawRequestBody)
 
 --------------------------------------------------------------------------------
 
 
 deleteDeleteR                     :: ClientId -> RealmId -> FileKind -> Path
-                                  -> APIHandler TypedContent
-deleteDeleteR _  _  NonExistent _ = return . toTypedContent $ ()
-deleteDeleteR ci ri fk          p = do
-                                      er <- lift $ deleteFileOrDir ci ri p fk
-                                      case er of
-                                        Left err -> typedText_ err
-                                        Right _  -> typedText_ "OK"
+                                  -> APIHandler Value
+deleteDeleteR _  _  NonExistent _ = reportError_ "Nothing to delete"
+deleteDeleteR ci ri fk          p = toJSON <$> lift (deleteFileOrDir ci ri p fk)
 
+
+reportError :: Text -> Either ErrorMessage FileVersion
+reportError = Left
+
+reportError_ :: Monad m => Text -> m Value
+reportError_ = pure . toJSON . reportError
 
 -- typedText
 typedText :: Text -> TypedContent

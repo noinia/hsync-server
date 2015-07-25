@@ -1,5 +1,6 @@
 module HSync.Common.Types where
 
+import Data.Aeson.TH
 import Data.Char(isAlphaNum)
 import ClassyPrelude.Yesod
 import Data.SafeCopy(base, deriveSafeCopy)
@@ -22,13 +23,15 @@ type ErrorMessage = Text
 --------------------------------------------------------------------------------
 
 newtype FileName = FileName { _unFileName :: Text }
-                   deriving (Show,Read,Eq,Ord,IsString,ToMarkup,PathPiece,Typeable)
+                   deriving (Show,Read,Eq,Ord,IsString,ToMarkup,PathPiece,Typeable
+                            ,ToJSON,FromJSON)
 $(deriveSafeCopy 0 'base ''FileName)
 makeLenses ''FileName
 
 newtype Path = Path { _pathParts :: [FileName] }
                deriving (Show,Read,Eq,Ord,Typeable)
 $(deriveSafeCopy 0 'base ''Path)
+$(deriveJSON defaultOptions ''Path)
 makeLenses ''Path
 
 parentOf          :: Path -> Path
@@ -47,18 +50,18 @@ instance ToMarkup Path where
 
 
 newtype ClientId = ClientId Integer
-                   deriving (Show,Read,Eq,Ord,ToMarkup,Typeable,PathPiece)
+                   deriving (Show,Read,Eq,Ord,ToMarkup,Typeable,PathPiece,ToJSON,FromJSON)
 $(deriveSafeCopy 0 'base ''ClientId)
 
 newtype ClientName = ClientName Text
-                      deriving (Show,Read,Eq,Ord,ToMarkup,Typeable)
+                      deriving (Show,Read,Eq,Ord,ToMarkup,Typeable,ToJSON,FromJSON)
 $(deriveSafeCopy 0 'base ''ClientName)
 
 --------------------------------------------------------------------------------
 
 
 newtype RealmId = RealmId Integer
-                deriving (Show,Read,Eq,Ord,Typeable,ToMarkup,PathPiece)
+                deriving (Show,Read,Eq,Ord,Typeable,ToMarkup,PathPiece,FromJSON,ToJSON)
 $(deriveSafeCopy 0 'base ''RealmId)
 
 type RealmName = FileName
@@ -71,12 +74,12 @@ type RealmName = FileName
 
 
 newtype UserId = UserId { _unUserId :: Integer }
-                 deriving (Show,Read,Eq,Ord,ToMarkup,Typeable)
+                 deriving (Show,Read,Eq,Ord,ToMarkup,Typeable,FromJSON,ToJSON)
 $(deriveSafeCopy 0 'base ''UserId)
 makeLenses ''UserId
 
 newtype UserName = UserName { _unUserName :: Text  }
-                      deriving (Show,Read,Eq,Ord,ToMarkup,Typeable)
+                      deriving (Show,Read,Eq,Ord,ToMarkup,Typeable,FromJSON,ToJSON)
 $(deriveSafeCopy 0 'base ''UserName)
 makeLenses ''UserName
 
@@ -95,7 +98,7 @@ userNameChar = isAlphaNum
 
 
 newtype RealName = RealName { _unRealName :: Text }
-                 deriving (Show,Read,Eq,Ord,ToMarkup,Typeable)
+                 deriving (Show,Read,Eq,Ord,ToMarkup,Typeable,FromJSON,ToJSON)
 $(deriveSafeCopy 0 'base ''RealName)
 makeLenses ''RealName
 -- $(deriveJSON defaultOptions ''RealName)
@@ -136,6 +139,13 @@ newtype Signature = Signature { _signatureData :: ByteString }
                     deriving (Show,Read,Eq,Ord)
 $(deriveSafeCopy 0 'base ''Signature)
 makeLenses ''Signature
+
+instance ToJSON Signature where
+  toJSON = String . T.pack . showSignatureData
+
+instance FromJSON Signature where
+  parseJSON (String t) = pure . Signature . B.pack . T.unpack $ t
+  parseJSON _          = mzero
 
 instance PathPiece Signature where
   toPathPiece   = T.pack . B.unpack . _signatureData
