@@ -13,5 +13,4 @@
 /store/directory/#ClientId/#RealmId/*Path            CreateDirR      POST
 /store/file/#ClientId/#RealmId/#Signature/*Path      StoreFileR      POST
 
-/delete/directory/#ClientId/#RealmId/*Path           DeleteDirR      DELETE
-/delete/file/#ClientId/#RealmId/#Signature/*Path     DeleteFileR     DELETE
+/delete/#ClientId/#RealmId/#FileKind/*Path           DeleteR         DELETE

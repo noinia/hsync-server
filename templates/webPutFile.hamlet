@@ -1,4 +1,4 @@
-<div .putFile .container>
+<div .putFile>
   <form method=post action=@{WebStoreFileR ri parent} enctype=#{enctype}>
     ^{widget}
     <button type="submit" .btn .btn-success>Upload File

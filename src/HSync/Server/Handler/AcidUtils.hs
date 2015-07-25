@@ -9,10 +9,10 @@ import HSync.Server.Import
 -- * Actual implementations for these things
 
 addFile                        :: ClientId -> RealmId -> Path -> FileKind
-                               -> Source (ResourceT IO) ByteString
+                               -> Source Handler ByteString
                                -> Handler (Either ErrorMessage FileVersion)
 addFile ci ri p currentKind s = do
-    (_,sig) <- storeFile ri p s
+    (_,sig) <- storeFile' ri p s
     elm     <- getLastModified ci
     case elm of
       Left err -> return $ Left err

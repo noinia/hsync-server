@@ -1,0 +1,6 @@
+<div .nonExistent>
+  <h1 .fileKind>#{iconOf node} Deleted
+
+  <h2>Last Modified
+
+  ^{lastModifiedWidget}

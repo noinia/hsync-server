@@ -1,0 +1,24 @@
+.nodeName {
+    margin-top: 0;
+}
+
+.lbl {
+
+}
+
+.lbl:after {
+    content: ":"
+}
+
+.value {
+
+}
+
+#main h2 {
+    font-size: 125%;
+    clear: both;
+}
+
+.fileKind .glyphicon {
+    margin-right: 10px;
+}

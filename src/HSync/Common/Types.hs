@@ -26,7 +26,6 @@ newtype FileName = FileName { _unFileName :: Text }
 $(deriveSafeCopy 0 'base ''FileName)
 makeLenses ''FileName
 
-
 newtype Path = Path { _pathParts :: [FileName] }
                deriving (Show,Read,Eq,Ord,Typeable)
 $(deriveSafeCopy 0 'base ''Path)
@@ -55,15 +54,16 @@ newtype ClientName = ClientName Text
                       deriving (Show,Read,Eq,Ord,ToMarkup,Typeable)
 $(deriveSafeCopy 0 'base ''ClientName)
 
-
 --------------------------------------------------------------------------------
 
 
 newtype RealmId = RealmId Integer
-                deriving (Show,Read,Eq,Ord,ToMarkup,Typeable,PathPiece)
+                deriving (Show,Read,Eq,Ord,Typeable,ToMarkup,PathPiece)
 $(deriveSafeCopy 0 'base ''RealmId)
 
 type RealmName = FileName
+
+
 
 --------------------------------------------------------------------------------
 
@@ -74,7 +74,6 @@ newtype UserId = UserId { _unUserId :: Integer }
                  deriving (Show,Read,Eq,Ord,ToMarkup,Typeable)
 $(deriveSafeCopy 0 'base ''UserId)
 makeLenses ''UserId
-
 
 newtype UserName = UserName { _unUserName :: Text  }
                       deriving (Show,Read,Eq,Ord,ToMarkup,Typeable)

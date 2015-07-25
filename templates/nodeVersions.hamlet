@@ -1,0 +1,14 @@
+<div #versions .container>
+  <div .col-md-1 .container .versions-control>
+    <a .left href="#versionCarousel" role="button">
+      <span .glyphicon .glyphicon-chevron-left aria-hidden="true">
+      <span .sr-only>Previous</a>
+
+
+  <div .col-md-10  .container #versionsMain>
+    ^{firstW}
+
+  <div .col-md-1  .container  .versions-control>
+    <a .right href="#versionCarousel" role="button">
+      <span .glyphicon .glyphicon-chevron-right aria-hidden="true">
+      <span .sr-only>Next</a>

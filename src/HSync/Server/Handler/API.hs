@@ -2,6 +2,7 @@ module HSync.Server.Handler.API where
 
 import HSync.Common.API
 import HSync.Server.Import
+import HSync.Server.Handler.AcidUtils
 
 
 --------------------------------------------------------------------------------
@@ -25,8 +26,8 @@ getRealmR ri p = undefined
 
 
 getDownloadR                  :: RealmId -> FileKind -> Path -> APIHandler TypedContent
-getDownloadR _  NonExistent _ = return $ toTypedContent ("NonExistent file" :: Text)
-getDownloadR ri Directory   p = return $ toTypedContent ("Directory" :: Text)
+getDownloadR _  NonExistent _ = typedText_ ("NonExistent file" :: Text)
+getDownloadR ri Directory   p = typedText_ ("Directory" :: Text)
 getDownloadR ri (File s)    p = getFileR ri s p
 
 
@@ -46,15 +47,31 @@ getLatestFileR ri p = undefined --- return ()
 postCreateDirR         :: ClientId -> RealmId -> Path -> APIHandler TypedContent
 postCreateDirR ci ri p = undefined
 
-postStoreFileR           :: ClientId -> RealmId -> Signature -> Path
-                         -> APIHandler TypedContent
-postStoreFileR ci ri s p = undefined
 
+postStoreFileR             :: ClientId -> RealmId -> Signature -> Path
+                           -> APIHandler TypedContent
+postStoreFileR ci ri sig p = do
+                               er <- lift $ addFile ci ri p (File sig) rawRequestBody
+                               case er of
+                                 Left err -> typedText_ err
+                                 Right _  -> typedText_ "OK"
 
 --------------------------------------------------------------------------------
 
-deleteDeleteDirR :: ClientId -> RealmId -> Path -> APIHandler TypedContent
-deleteDeleteDirR ci ri p = undefined
 
-deleteDeleteFileR :: ClientId -> RealmId -> Signature -> Path -> APIHandler TypedContent
-deleteDeleteFileR ci ri s p = undefined
+deleteDeleteR                     :: ClientId -> RealmId -> FileKind -> Path
+                                  -> APIHandler TypedContent
+deleteDeleteR _  _  NonExistent _ = return . toTypedContent $ ()
+deleteDeleteR ci ri fk          p = do
+                                      er <- lift $ deleteFileOrDir ci ri p fk
+                                      case er of
+                                        Left err -> typedText_ err
+                                        Right _  -> typedText_ "OK"
+
+
+-- typedText
+typedText :: Text -> TypedContent
+typedText = toTypedContent
+
+typedText_ :: Monad m => Text -> m TypedContent
+typedText_ = return . typedText

@@ -4,6 +4,7 @@ module HSync.Common.Realm(
                            Realm(Realm), realmTree, realmAccessPolicy
                          , RealmNodeData(RealmNodeData), versions, accessPolicy
                          , RealmTree
+                         , lastExistingVersion
 
                          , AccessPoint(AccessPoint), accessWithRealmName, accessPointPath
 
@@ -47,6 +48,7 @@ module HSync.Common.Realm(
 
        where
 
+import Data.Maybe(listToMaybe)
 import qualified Data.List.NonEmpty as NE
 import ClassyPrelude.Yesod hiding (update, delete)
 import Control.Lens
@@ -81,6 +83,16 @@ instance ST.HasVersions RealmNodeData v where
 instance ST.Measured m v => ST.Measured m (RealmNodeData v) where
   measure = ST.measure . NE.head . _versions
 
+
+-- | This should really produce a Just; otherwise there would only be nonExistent versions
+lastExistingVersion :: RealmNodeData FileVersion -> Maybe FileVersion
+lastExistingVersion = listToMaybe . NE.dropWhile (not . exists . (^.fileKind))
+                    . view versions
+
+
+
+
+--------------------------------------------------------------------------------
 
 type GRealmTree m v = StorageTree FileName m (RealmNodeData v)
 
@@ -201,3 +213,5 @@ childrenByKind p = fmap (^.ST.unOrdByName) . S.toAscList . childrenByKind' p
 childrenByKind'     :: (FileKind -> Bool) -> StorageTree n m FileVersion
                    -> S.Set (OrdByName n (StorageTree n m FileVersion))
 childrenByKind' p t = S.filter (^.ST.unOrdByName.ST.nodeData.fileKind.to p) $ t^.ST.children
+
+--------------------------------------------------------------------------------

@@ -1,5 +1,5 @@
 .putDir {
-
+    margin-bottom: 50px;
 }
 
 .putDir label {

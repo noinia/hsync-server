@@ -32,6 +32,7 @@ import qualified Data.ByteString.Char8 as B
 import qualified Data.HashMap.Strict   as H
 import qualified Data.Time.Format      as D
 import qualified Data.Text             as T
+import Text.Blaze(ToMarkup(..))
 
 --------------------------------------------------------------------------------
 
@@ -49,6 +50,9 @@ readDateTime = readsTime undefined dateTimeFormat
 
 dateTimeFormat :: String
 dateTimeFormat = "%F-%T.%q-%Z"
+
+instance ToMarkup DateTime where
+  toMarkup = toMarkup . showDateTime . unDT
 
 instance Show DateTime where
     show (DateTime t) = dtPrefix ++ showDateTime t

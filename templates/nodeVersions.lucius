@@ -1,0 +1,17 @@
+.versions-control {
+    vertical-align: middle;
+    text-align: center;
+    font-size: 200%;
+    margin-left: 0;
+    margin-right: 0;
+    padding-left: 0;
+    padding-right: 0;
+    min-height: 500px;
+}
+
+#versionsMain {
+    margin-left: 0;
+    margin-right: 0;
+    padding-left: 0;
+    padding-right: 0;
+}

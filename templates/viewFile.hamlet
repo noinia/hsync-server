@@ -1,0 +1,11 @@
+<div .file>
+  <h1 .fileKind>#{fileIcon} File
+
+  <h2>Last Modified
+
+  ^{lastModifiedWidget}
+
+  <table .table>
+  <tr>
+    <td .lbl>Signature
+    <td .value>#{show sig}

@@ -1,0 +1,42 @@
+<div .directory>
+  <h1 .fileKind>#{directoryIcon} Directory
+
+  <h2>Last Modified
+
+  ^{lastModifiedWidget}
+
+  <h2>Create a new directory or upload a new file
+
+  ^{createDirWidget}
+
+  ^{storeFileWidget}
+
+  <h2>Directory Contents
+
+  $if null chs
+    <p>Directory is Empty
+  $else
+    <table .table .table-striped>
+      <col .iconCol>
+      <col>
+      <col .iconCol>
+      <col .iconCol>
+      <col .iconCol>
+
+      <tbody>
+        $forall c <- chs
+          <tr :isNonExistent c:.nonExistent>
+            <td .file>#{iconOf c}
+            <td .fileName><a href=@{ViewRealmR ri (pathOf c)}> #{view name c}</a>
+            <td .download>
+              <a href=@{APIR $ DownloadR ri (fileKindOf c) (pathOf c)}>
+                <span class="glyphicon glyphicon-download-alt" aria-hidden="true"></a>
+            <td .inspect>
+              <a href=@{ViewRealmR ri (pathOf c)}>
+                <span class="glyphicon glyphicon-search" aria-hidden="true"></a>
+            <td .remove>
+              $if exists (fileKindOf c)
+                <a href=@{WebDeleteR ri (fileKindOf c) (pathOf c)}>
+              $else
+                <a href="#">
+              <span class="glyphicon glyphicon-remove" aria-hidden="true"></a>

@@ -14,17 +14,22 @@ module HSync.Server.Realm( Realms(Realms), realmMap, nextRealmId
                          , Realm(Realm), realmTree, realmAccessPolicy
                          , Realm.RealmNodeData(RealmNodeData), versions, accessPolicy
                          , RealmTree, Realm.current', Realm.realmRoot
+                         , Realm.lastExistingVersion
+                         , children, nodeData, name, measurement
+                         , HasVersions(..)
 
-
+                         , unOrdByName
+                         , OrdByName(..)
                          ) where
 
 import Data.Monoid
 import Data.Default
 import Prelude
 import           HSync.Common.Types
-import           HSync.Common.StorageTree(HasVersions(..), nodeData)
 import HSync.Common.Realm( Realm(..), RealmTree, versions, accessPolicy
                          , newRealmTree, realmTree, realmAccessPolicy
+                         , children, nodeData, name, measurement, HasVersions(..)
+                         , OrdByName(..), unOrdByName
                          )
 import qualified HSync.Common.Realm as Realm
 
@@ -35,7 +40,7 @@ import Control.Monad.State.Class
 import Control.Monad.Reader.Class
 import Data.Acid(Query, Update, makeAcidic, liftQuery)
 import Data.SafeCopy(base, deriveSafeCopy)
-import Control.Lens hiding (Indexable)
+import Control.Lens hiding (Indexable, children)
 import qualified Data.Map as M
 
 --------------------------------------------------------------------------------

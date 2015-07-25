@@ -13,6 +13,20 @@ import qualified Data.Map as M
 
 --------------------------------------------------------------------------------
 
+storeFile'        :: RealmId -> Path -> Source Handler ByteString
+                 -> Handler (FilePath, Signature)
+storeFile' ri p s = do
+    dirFP <- toFilePath ri p
+    rnd <- liftIO randomFileName
+    liftIO $ createDirectoryIfMissing True dirFP
+    let fp = dirFP </> rnd
+    s $$ sinkFile fp
+    sig <- fileSignature fp
+    let fp' = dirFP </> showSignatureData sig
+    liftIO $ renameFile fp fp'
+    return (fp',sig)
+
+
 
 storeFile        :: RealmId -> Path -> Source (ResourceT IO) ByteString
                  -> Handler (FilePath, Signature)
@@ -21,11 +35,12 @@ storeFile ri p s = do
     rnd <- liftIO randomFileName
     liftIO $ createDirectoryIfMissing True dirFP
     let fp = dirFP </> rnd
-    liftIO . runResourceT $ s $$ sinkFile fp
+    liftResourceT $ s $$ sinkFile fp
     sig <- fileSignature fp
     let fp' = dirFP </> showSignatureData sig
     liftIO $ renameFile fp fp'
     return (fp',sig)
+
 
 
 randomFileName :: IO FilePath

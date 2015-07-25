@@ -1,0 +1,18 @@
+.directory {
+    padding-top: 0;
+    margin-top: 0;
+}
+
+.fileName {
+    padding-right: 50px;
+    width: 50%;
+}
+
+col.iconCol {
+    width: 3%;
+}
+
+
+.nonExistent {
+    opacity: 0.5;
+}

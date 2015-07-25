@@ -10,6 +10,7 @@ import HSync.Common.StorageTree(Measured(..))
 import Data.SafeCopy
 import HSync.Common.DateTime
 import qualified Data.Text as T
+import Text.Blaze(ToMarkup(..))
 
 --------------------------------------------------------------------------------
 
@@ -20,6 +21,11 @@ instance SafeCopy LastModificationTime where
   putCopy (LastModificationTime (Max u)) = contain $ safePut u
   getCopy = contain $ LastModificationTime . Max <$> safeGet
 
+instance ToMarkup LastModificationTime where
+  toMarkup = toMarkup . getMax . _unLMT
+
+
+--------------------------------------------------------------------------------
 
 data FileKind = Directory
               | File Signature
@@ -56,6 +62,9 @@ exists _           = True
 signature :: Traversal' FileKind Signature
 signature = _File
 
+
+--------------------------------------------------------------------------------
+
 data LastModified = LastModified { _modificationTime :: DateTime
                                  , _modUser          :: UserId
                                  , _modClient        :: ClientId
@@ -68,6 +77,8 @@ $(deriveSafeCopy 0 'base ''LastModified)
 instance Measured LastModificationTime LastModified where
   measure = LastModificationTime . Max . _modificationTime
 
+
+--------------------------------------------------------------------------------
 
 
 data FileVersion = FileVersion { _fileKind      :: FileKind

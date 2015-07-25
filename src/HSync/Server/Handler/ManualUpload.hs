@@ -30,6 +30,7 @@ postWebCreateDirR ri parent = do
             Right _  -> setMessage $ "Created directory '" <> toHtml n <> "'."
       FormFailure errs -> let e = mconcat $ map toHtml errs
                           in setMessage $ "Error. Could not add directory " <> e
+      FormMissing    -> setMessage "Error. No such form"
     redirect $ ViewRealmR ri parent
 
 -- | Code that generates the widget/form which can be used to create a new directory
@@ -72,15 +73,17 @@ postWebStoreFileR ri parent = do
     ((result,_), _) <- runFormPost addFileForm
     case result of
       FormSuccess fInfo -> do
-          let n = FileName $ fileName fInfo
-              p = parent&pathParts %~ (++ [n])
-          efv <- addFile webClientId ri p NonExistent (fileSourceRaw fInfo)
+          let n       = FileName $ fileName fInfo
+              p       = parent&pathParts %~ (++ [n])
+              fSource = transPipe liftResourceT . fileSourceRaw $ fInfo
+          efv <- addFile webClientId ri p NonExistent fSource
                  -- we can only create a File if it does not exist yet
           case efv of
             Left err -> setMessage $ toHtml err
             Right _  -> setMessage $ "Added File '" <> toHtml n <> "'."
       FormFailure errs  -> let e = mconcat $ map toHtml errs
                           in setMessage $ "Error. Could not add file " <> e
+      FormMissing    -> setMessage "Error. No such form"
     redirect $ ViewRealmR ri parent
 
 -- | Generate the widget that allows uploading a file
@@ -103,5 +106,6 @@ getWebDeleteR ri fk p = do
   ev <- deleteFileOrDir webClientId ri p fk
   case ev of
     Left err -> setMessage $ "Error. Could not delete file or directory " <> toHtml p
+                           <> " : " <> toHtml err
     Right _  -> setMessage $ "Deleted " <> toHtml p
   redirect $ ViewRealmR ri (parentOf p)
