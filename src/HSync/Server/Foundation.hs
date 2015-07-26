@@ -117,6 +117,15 @@ instance Yesod App where
 
     makeLogger = return . _appLogger
 
+    maximumContentLength _ (Just r)
+                     | postsBigFile r = Nothing -- no limits for big  files
+      where
+        postsBigFile (APIR (StoreFileR _ _ _ _))  = True
+        postsBigFile (WebStoreFileR _ _)          = True
+        postsBigFile _                            = False
+    maximumContentLength _ _          = Just $ 2 * 1024 * 1024 -- 2 megabytes
+
+
 
 defaultLayout' layout = do
         -- master <- getImplementation
