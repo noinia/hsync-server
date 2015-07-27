@@ -3,13 +3,22 @@ module HSync.Server.Handler.API where
 import Control.Lens
 import HSync.Common.API
 import HSync.Server.Import
+import HSync.Common.Header
+import HSync.Server.LocalAuth(validateUser)
 import HSync.Server.Handler.AcidUtils
-
+import Data.Maybe(fromJust)
 
 --------------------------------------------------------------------------------
 
-postAPILoginR :: APIHandler ()
-postAPILoginR = undefined
+postAPILoginR :: APIHandler Value
+postAPILoginR = lift $ do
+    mu    <-                       lookupTypedHeader HUserName
+    mpw   <- fmap hashPassword <$> lookupTypedHeader HPassword
+    b <- validateUser' mu mpw
+    when b $ setCreds False $ Creds "PostAPILoginR" ((fromJust mu)^.unUserName) []
+    return $ toJSON b
+  where
+    validateUser' mu mpw = fromMaybe (pure False) $ validateUser <$> mu <*> mpw
 
 
 --------------------------------------------------------------------------------
