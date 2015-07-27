@@ -49,9 +49,10 @@ instance ToMarkup Path where
 --------------------------------------------------------------------------------
 
 
-newtype ClientId = ClientId Integer
+newtype ClientId = ClientId { _unClientId :: Integer }
                    deriving (Show,Read,Eq,Ord,ToMarkup,Typeable,PathPiece,ToJSON,FromJSON)
 $(deriveSafeCopy 0 'base ''ClientId)
+makeLenses ''ClientId
 
 newtype ClientName = ClientName Text
                       deriving (Show,Read,Eq,Ord,ToMarkup,Typeable,ToJSON,FromJSON)

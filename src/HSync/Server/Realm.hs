@@ -11,12 +11,14 @@ module HSync.Server.Realm( Realms(Realms), realmMap, nextRealmId
                          , Delete(..)
 
                            -- * Re-exports from Common.Realm:
-                         , Realm(Realm), realmTree, realmAccessPolicy
+                         , Realm(Realm), realmTree
                          , Realm.RealmNodeData(RealmNodeData), versions, accessPolicy
                          , RealmTree, Realm.current', Realm.realmRoot
                          , Realm.lastExistingVersion
                          , children, nodeData, name, measurement
                          , HasVersions(..)
+
+                         , AccessPoint(AccessPoint), accessPointRealm, accessPointPath
 
                          , unOrdByName
                          , OrdByName(..)
@@ -27,9 +29,11 @@ import Data.Default
 import Prelude
 import           HSync.Common.Types
 import HSync.Common.Realm( Realm(..), RealmTree, versions, accessPolicy
-                         , newRealmTree, realmTree, realmAccessPolicy
+                         , newRealmTree, realmTree
                          , children, nodeData, name, measurement, HasVersions(..)
                          , OrdByName(..), unOrdByName
+
+                         , AccessPoint(AccessPoint), accessPointRealm, accessPointPath
                          )
 import qualified HSync.Common.Realm as Realm
 
@@ -61,7 +65,7 @@ createRealm           :: RealmName -> LastModified -> AccessPolicy
                       -> Update Realms (RealmId,Realm,Realms)
 createRealm rn lm pol = do
                        Realms m ni@(RealmId i) <- get
-                       let r  = Realm (newRealmTree rn lm) pol
+                       let r  = Realm $ newRealmTree rn lm pol
                        let rs = Realms (M.insert ni r m) (RealmId $ i+1)
                        put rs
                        return (ni,r,rs)

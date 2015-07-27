@@ -1,12 +1,12 @@
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE UndecidableInstances #-}
 module HSync.Common.Realm(
-                           Realm(Realm), realmTree, realmAccessPolicy
+                           Realm(Realm), realmTree
                          , RealmNodeData(RealmNodeData), versions, accessPolicy
                          , RealmTree
                          , lastExistingVersion
 
-                         , AccessPoint(AccessPoint), accessWithRealmName, accessPointPath
+                         , AccessPoint(AccessPoint), accessPointRealm, accessPointPath
 
                          , newRealmTree
                          , realmData
@@ -71,8 +71,8 @@ makeLenses ''RealmNodeData
 $(deriveSafeCopy 0 'base ''RealmNodeData)
 
 
-realmData    :: v -> RealmNodeData v
-realmData fv = RealmNodeData (fv NE.:| []) []
+realmData        :: v -> AccessPolicy -> RealmNodeData v
+realmData fv pol = RealmNodeData (fv NE.:| []) pol
 
 instance ST.HasVersions RealmNodeData v where
   headVersionLens = versions.lens NE.head (\(_ NE.:| xs) x -> x NE.:| xs)
@@ -101,18 +101,16 @@ type GRealmTree m v = StorageTree FileName m (RealmNodeData v)
 type RealmTree = GRealmTree LastModificationTime FileVersion
 
 
-newRealmTree     :: RealmName -> LastModified -> RealmTree
-newRealmTree n m = ST.Node n (ST.measure d) d mempty
+newRealmTree         :: RealmName -> LastModified -> AccessPolicy -> RealmTree
+newRealmTree n m pol = ST.Node n (ST.measure d) d mempty
   where
-    d = realmData $ FileVersion Directory m True
+    d = realmData (FileVersion Directory m True) pol
 
 
 --------------------------------------------------------------------------------
 
 
-data Realm = Realm { _realmTree         :: RealmTree
-                   , _realmAccessPolicy :: AccessPolicy
-                   }
+newtype Realm = Realm { _realmTree :: RealmTree }
              deriving (Show,Read)
 makeLenses ''Realm
 $(deriveSafeCopy 0 'base ''Realm)
@@ -155,13 +153,12 @@ commit p m r = r&realmTree %~ commit' p m
 commit'             :: Path -> LastModified -> RealmTree -> RealmTree
 commit' (Path p) lm = ST.updateAt p (&ST.headVersionLens.dataCommitted .~ True) parentData
   where
-    parentData = realmData $ FileVersion Directory lm True
+    parentData = realmData (FileVersion Directory lm True) mempty
 
 
 -- | Update the access policy of the realm
 updateAccessPolicy     :: (AccessPolicy -> AccessPolicy) -> Realm -> Realm
-updateAccessPolicy f r = r&realmAccessPolicy %~ f
-
+updateAccessPolicy f r = r&realmTree.ST.nodeData.accessPolicy %~ f
 
 updateAccessPolicyOf          :: Path -> (AccessPolicy -> AccessPolicy)
                               -> LastModified -> Realm -> Realm
@@ -171,7 +168,7 @@ updateAccessPolicyOf p f lm r = r&realmTree %~ updateAccessPolicyAt p f lm
 update            :: Path -> FileVersion -> RealmTree -> RealmTree
 update (Path p) v = ST.updateVersionAt p (const v) parentData
   where
-    parentData = realmData $ FileVersion Directory (v^.lastModified) True
+    parentData = realmData (FileVersion Directory (v^.lastModified) True) mempty
 
 
 updateAccessPolicyAt               :: Path -> (AccessPolicy -> AccessPolicy)
@@ -180,7 +177,7 @@ updateAccessPolicyAt               :: Path -> (AccessPolicy -> AccessPolicy)
                                    -> RealmTree -> RealmTree
 updateAccessPolicyAt (Path p) f lm = ST.updateAt p (&accessPolicy %~ f) parentData
   where
-    parentData = realmData $ FileVersion Directory lm True
+    parentData = realmData (FileVersion Directory lm True) mempty
 
 --------------------------------------------------------------------------------
 

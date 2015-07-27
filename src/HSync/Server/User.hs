@@ -3,6 +3,7 @@ module HSync.Server.User( UserIndex(..)
                           -- * Acididic Operations
                         , QueryUserIndex(..)
                         , LookupUserByName(..)
+                        , LookupUserById(..)
                         , InsertUser(..)
                         , UpdateUser(..)
 
@@ -71,6 +72,10 @@ queryUserIndex = ask
 lookupUserByName    :: UserName -> Query UserIndex (Maybe User)
 lookupUserByName ui = lookupUserByName' ui <$> ask
 
+lookupUserById    :: UserId -> Query UserIndex (Maybe User)
+lookupUserById ui = lookupUserById' ui <$> ask
+
+
 insertUser    :: RegisterUser
               -> Update UserIndex (Either ErrorMessage (User,UserIndex))
 insertUser ru = do
@@ -105,6 +110,7 @@ lookupUserById' ui (UserIndex s _) = I.getOne $ s @= ui
 
 $(makeAcidic ''UserIndex [ 'queryUserIndex
                          , 'lookupUserByName
+                         , 'lookupUserById
                          , 'insertUser
                          , 'updateUser
                          ])
