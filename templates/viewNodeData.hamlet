@@ -7,3 +7,7 @@
   <tr>
     <td .lbl>Measurement
     <td .value>#{view measurement node}
+
+<p>
+  <a .btn .btn-lg .btn-primary
+     href=@{APIR $ DownloadCurrentR ri p} role="button">Download</a>

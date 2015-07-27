@@ -13,7 +13,7 @@
       ^{userMenu}
 
 $maybe msg <- mmsg
-  <div #message .alert .alert-dismissible role="alert">#{msg}
+  <div #message .alert .alert-dismissible .alert-info role="alert">#{msg}
     <button type="button" .close data-dismiss="alert"
       aria-label="Close"><span aria-hidden="true">&times;</span>
 
