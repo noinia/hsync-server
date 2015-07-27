@@ -144,6 +144,9 @@ defaultLayout' layout = do
 
         pc <- widgetToPageContent $ do
                 setTitle "Welcome To HSync!"
+                addScript $ StaticR js_jquery_min_js
+                addScript $ StaticR js_bootstrap_min_js
+
                 $(combineStylesheets 'StaticR [ css_bootstrap_css --  css_normalize_css
                                               ])
                 $(widgetFile "default-layout")
