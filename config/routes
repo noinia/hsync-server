@@ -1,19 +1,27 @@
-/static                           StaticR Static    getStatic
-/auth                             AuthR   Auth      getAuth
-/api                              APIR    HSyncAPI  getHSyncAPI
-
-/                                 HomeR           GET
+/static                                                StaticR Static    getStatic
+/auth                                                  AuthR   Auth      getAuth
+/api                                                   APIR    HSyncAPI  getHSyncAPI
 
 
-/view/realm/#RealmId/*Path        ViewRealmR      GET
-
-/create/directory/#RealmId/*Path  WebCreateDirR   POST
-/store/file/#RealmId/*Path        WebStoreFileR   POST
-/delete/#RealmId/#FileKind/*Path  WebDeleteR      GET
+/                                                      HomeR                  GET
 
 
-/admin/users                      ListUsersR      GET
-/admin/realms                     ListRealmsR     GET
+/view/realm/#RealmId/*Path                             ViewRealmR             GET
 
-/favicon.ico                      FaviconR        GET
-/robots.txt                       RobotsR         GET
+/create/directory/#RealmId/*Path                       WebCreateDirR          POST
+/store/file/#RealmId/*Path                             WebStoreFileR          POST
+/delete/#RealmId/#FileKind/*Path                       WebDeleteR             GET
+
+/accessPolicy/view/#RealmId/*Path                      AccessPolicyR          GET POST
+/accessPolicy/item/#AccessItem/#RealmId/*Path          ModifyAccessItemR      GET POST
+
+
+/user/profile/#UserName                                UserProfileR           GET
+/user/realms/#UserName                                 ListUserRealmsR        GET
+
+
+/admin/users                                           ListUsersR             GET
+/admin/realms                                          ListRealmsR            GET
+
+/favicon.ico                                           FaviconR               GET
+/robots.txt                                            RobotsR                GET

@@ -205,7 +205,8 @@ createHomeRealm u = do dt <- currentTime
                        updateAcid . UpdateUser $ addRealm (realmRoot ri) u
   where
     rn  = FileName $ u^.userName.unUserName
-    ap  = [AccessUser $ M.singleton (u^.userId) (S.fromList [Read,Write])]
+    ap  = AccessPolicy $
+          M.singleton (AccessUser (u^.userId)) (S.fromList [Read,Write])
 
 instance YesodAuth App where
     type AuthId App = User

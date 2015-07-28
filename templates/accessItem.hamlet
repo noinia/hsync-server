@@ -1,0 +1,5 @@
+<h1>Access Item for #{ri} and #{p}
+
+<form method=post action=@{ModifyAccessItemR ai ri p} enctype=#{enctype}>
+  ^{form}
+  <button type="submit" .btn .btn-success>Save

@@ -13,34 +13,18 @@ import qualified Data.Map as M
 
 --------------------------------------------------------------------------------
 
-storeFile'        :: RealmId -> Path -> Source Handler ByteString
-                 -> Handler (FilePath, Signature)
-storeFile' ri p s = do
-    dirFP <- toFilePath ri p
-    rnd <- liftIO randomFileName
-    liftIO $ createDirectoryIfMissing True dirFP
-    let fp = dirFP </> rnd
-    s $$ sinkFile fp
-    sig <- fileSignature fp
-    let fp' = dirFP </> showSignatureData sig
-    liftIO $ renameFile fp fp'
-    return (fp',sig)
-
-
-
-storeFile        :: RealmId -> Path -> Source (ResourceT IO) ByteString
+storeFile        :: RealmId -> Path -> Source Handler ByteString
                  -> Handler (FilePath, Signature)
 storeFile ri p s = do
     dirFP <- toFilePath ri p
     rnd <- liftIO randomFileName
     liftIO $ createDirectoryIfMissing True dirFP
     let fp = dirFP </> rnd
-    liftResourceT $ s $$ sinkFile fp
+    s $$ sinkFile fp
     sig <- fileSignature fp
-    let fp' = dirFP </> showSignatureData sig
+    let fp' = dirFP </> T.unpack (sig^.signatureData)
     liftIO $ renameFile fp fp'
     return (fp',sig)
-
 
 
 randomFileName :: IO FilePath
@@ -61,7 +45,7 @@ toFilePath (RealmId i) (Path p) = f <$> getYesod
 
 -- | Get the path where a file is stored
 getFilePath        :: RealmId -> Path -> Signature -> Handler FilePath
-getFilePath ri p s = (</> showSignatureData s) <$> toFilePath ri p
+getFilePath ri p s = (</> T.unpack (s^.signatureData)) <$> toFilePath ri p
 
 
 fileExtension :: Path -> Maybe Text

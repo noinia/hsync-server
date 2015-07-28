@@ -16,9 +16,9 @@ getListUsersR = do
   defaultLayout $(widgetFile "listUsers")
 
 
-getListUserRealmsR    :: UserId -> Handler Html
+getListUserRealmsR    :: UserName -> Handler Html
 getListUserRealmsR ui = do
-    mu <- queryAcid (LookupUserById ui)
+    mu <- queryAcid (LookupUserByName ui)
     case mu of
       Nothing -> do setMessage "No such user"
                     notFound
@@ -32,5 +32,5 @@ getListUserRealmsR ui = do
 
 
 
-getUserProfileR :: UserId -> Handler Html
+getUserProfileR :: UserName -> Handler Html
 getUserProfileR = undefined

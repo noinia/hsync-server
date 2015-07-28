@@ -23,6 +23,7 @@ library
                      HSync.Server.Settings.StaticFiles
                      HSync.Server.User
                      HSync.Server.Realm
+                     HSync.Server.Types
 
                      HSync.Server.Handler.AccessPolicy
                      HSync.Server.Handler.AcidUtils
@@ -44,6 +45,7 @@ library
                      HSync.Common.StorageTree
                      HSync.Common.Types
                      HSync.Common.User
+                     HSync.Common.Util
                      HSync.Common.OrphanInstances
 
 

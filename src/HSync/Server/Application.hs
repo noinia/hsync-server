@@ -32,6 +32,7 @@ import HSync.Server.AcidState
 
 -- Import all relevant handler modules here.
 -- Don't forget to add new modules to your cabal file!
+import HSync.Server.Handler.AccessPolicy
 import HSync.Server.Handler.Common
 import HSync.Server.Handler.Home
 import HSync.Server.Handler.ManualUpload

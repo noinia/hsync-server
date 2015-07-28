@@ -75,7 +75,7 @@ type RealmName = FileName
 
 
 newtype UserId = UserId { _unUserId :: Integer }
-                 deriving (Show,Read,Eq,Ord,ToMarkup,Typeable,FromJSON,ToJSON)
+                 deriving (Show,Read,Eq,Ord,ToMarkup,Typeable,FromJSON,ToJSON,PathPiece)
 $(deriveSafeCopy 0 'base ''UserId)
 makeLenses ''UserId
 
@@ -131,39 +131,34 @@ hashPassword = HashedPassword . hash' . _unPassword
 
 --------------------------------------------------------------------------------
 
-newtype HashedURL = HashedURL { _hashedUrlData :: ByteString }
-                    deriving (Show,Read,Eq,Ord)
-$(deriveSafeCopy 0 'base ''HashedURL)
-makeLenses ''HashedURL
-
-newtype Signature = Signature { _signatureData :: ByteString }
-                    deriving (Show,Read,Eq,Ord)
+newtype Signature = Signature { _signatureData :: Text }
+                    deriving (Show,Read,Eq,Ord,ToJSON,FromJSON,PathPiece)
 $(deriveSafeCopy 0 'base ''Signature)
 makeLenses ''Signature
 
-instance ToJSON Signature where
-  toJSON = String . T.pack . showSignatureData
+-- instance ToJSON Signature where
+--   toJSON = String . T.pack . showSignatureData
 
-instance FromJSON Signature where
-  parseJSON (String t) = pure . Signature . B.pack . T.unpack $ t
-  parseJSON _          = mzero
+-- instance FromJSON Signature where
+--   parseJSON (String t) = pure . Signature . B.pack . T.unpack $ t
+--   parseJSON _          = mzero
 
-instance PathPiece Signature where
-  toPathPiece   = T.pack . B.unpack . _signatureData
-  fromPathPiece = Just . Signature . B.pack . T.unpack
+-- instance PathPiece Signature where
+--   toPathPiece   = T.pack . B.unpack . _signatureData
+--   fromPathPiece = Just . Signature . B.pack . T.unpack
 
 fileSignature    :: MonadIO m => FilePath -> m Signature
 fileSignature fp = f <$> hashFile fp
   where
     f :: CryptoAPI.SHA1 -> Signature
-    f = Signature . encode
+    f = Signature . T.pack . show
 
 
-showSignatureData               :: Signature -> String
-showSignatureData (Signature b) = decodeSignatureData b
+-- showSignatureData               :: Signature -> String
+-- showSignatureData (Signature b) = decodeSignatureData b
 
-decodeSignatureData   :: ByteString -> String
-decodeSignatureData b = case decode b of
-    Left _  -> B.unpack b
-      -- failed to decode, so as a best effort show and treat as Char8
-    Right x -> show (x :: CryptoAPI.SHA1)
+-- decodeSignatureData   :: ByteString -> String
+-- decodeSignatureData b = case decode b of
+--     Left _  -> B.unpack b
+--       -- failed to decode, so as a best effort show and treat as Char8
+--     Right x -> show (x :: CryptoAPI.SHA1)
