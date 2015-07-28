@@ -12,4 +12,5 @@ state/
 static/combined
 *~
 *#
+.#*
 cabal.sandbox.config
