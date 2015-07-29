@@ -5,6 +5,7 @@ module HSync.Server.Handler.AccessPolicy where
 import Control.Lens
 import HSync.Server.Import
 import qualified Data.Set as S
+import qualified Data.Map as M
 
 
 --------------------------------------------------------------------------------
@@ -19,7 +20,15 @@ getAccessPolicyR ri p = queryAcid (Access ri p) >>= \case
 getAccessPolicyR'           :: RealmId -> Path -> RealmTree -> Handler Html
 getAccessPolicyR' ri p node = defaultLayout $(widgetFile "accessPolicy")
   where
-    ap = node^.nodeData.accessPolicy
+    ap      = node^.nodeData.accessPolicy
+    allOpts = uncurry AccessItem <$> ap^.accessOptions.to M.assocs
+
+    allRights = [Read,Write]
+
+
+okIcon :: Html
+okIcon = [shamlet| <span .glyphicon .glyphicon-ok aria-hidden="true">|]
+
 
 
 getModifyAccessItemR         :: AccessItem -> RealmId -> Path -> Handler Html
@@ -35,6 +44,7 @@ modifyAccessPolicyWidget ai ri p = do
 postModifyAccessItemR :: AccessItem -> RealmId -> Path -> Handler Html
 postModifyAccessItemR = undefined
 
+accessItemForm    :: AccessItem -> Form AccessItem
 accessItemForm ai = renderDivs $ case ai^.accessOption of
                       AccessAnonymous  -> byAnonymousForm (Just ai)
                       AccessPassword _ -> byPasswordForm  (Just ai)

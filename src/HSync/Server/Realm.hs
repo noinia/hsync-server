@@ -17,6 +17,7 @@ module HSync.Server.Realm( Realms(Realms), realmMap, nextRealmId
                          , Realm.lastExistingVersion
                          , children, nodeData, name, measurement
                          , HasVersions(..)
+                         , lookupByName
 
                          , AccessPoint(AccessPoint), accessPointRealm, accessPointPath
 
@@ -31,7 +32,7 @@ import           HSync.Common.Types
 import HSync.Common.Realm( Realm(..), RealmTree, versions, accessPolicy
                          , newRealmTree, realmTree
                          , children, nodeData, name, measurement, HasVersions(..)
-                         , OrdByName(..), unOrdByName
+                         , OrdByName(..), unOrdByName, lookupByName
 
                          , AccessPoint(AccessPoint), accessPointRealm, accessPointPath
                          )

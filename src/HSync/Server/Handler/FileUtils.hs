@@ -5,7 +5,7 @@ import HSync.Server.Import.NoFoundation
 import HSync.Server.Foundation
 import Control.Lens
 import System.Directory(createDirectoryIfMissing, renameFile)
-import System.FilePath((</>), takeExtension)
+import System.FilePath(takeExtension)
 import qualified System.FilePath as FP
 import qualified Data.Text as T
 import System.Random(randomRIO)
@@ -49,10 +49,10 @@ getFilePath ri p s = (</> T.unpack (s^.signatureData)) <$> toFilePath ri p
 
 
 fileExtension :: Path -> Maybe Text
-fileExtension = fmap f . last . (^.pathParts)
+fileExtension = fmap f . last' . (^.pathParts)
   where
     f       = T.pack . takeExtension . T.unpack . T.toLower . (^.unFileName)
-    last    = getLast . foldMap (Last . Just)
+    last'   = getLast . foldMap (Last . Just)
 
 
 contentTypeOf   :: Path -> ContentType

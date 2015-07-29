@@ -116,7 +116,7 @@ makeLenses ''Password
 
 newtype HashedPassword = HashedPassword { _unHashedPassword :: Text }
                     deriving (Show,Read,Eq,Ord,
-                              PathPiece,FromJSON,ToJSON)
+                              PathPiece,FromJSON,ToJSON,ToMarkup)
 $(deriveSafeCopy 0 'base ''HashedPassword)
 makeLenses ''HashedPassword
 

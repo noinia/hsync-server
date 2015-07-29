@@ -2,15 +2,15 @@
 module HSync.Common.AccessPolicy where
 
 import ClassyPrelude.Yesod
-import Data.Semigroup
 import Control.Lens
 import HSync.Common.Types
 import HSync.Common.Util
+import HSync.Common.OrphanInstances()
 import qualified Data.Map as M
 import Data.SafeCopy(base, deriveSafeCopy)
 import qualified Data.Set as S
 import qualified Data.Text as T
-
+import Text.Blaze(ToMarkup(..))
 
 --------------------------------------------------------------------------------
 
@@ -18,6 +18,8 @@ data AccessRight = Read | Write
                  deriving (Show,Read,Eq,Ord)
 $(deriveSafeCopy 0 'base ''AccessRight)
 
+instance ToMarkup AccessRight where
+  toMarkup = toMarkup . show
 
 instance PathPiece AccessRight where
   toPathPiece   = toPathPieceShow
@@ -30,6 +32,11 @@ data AccessOption = AccessAnonymous
                   deriving (Show,Read,Eq,Ord)
 $(deriveSafeCopy 0 'base ''AccessOption)
 makePrisms ''AccessOption
+
+instance ToMarkup AccessOption where
+  toMarkup AccessAnonymous     = "AccessAnonymous"
+  toMarkup (AccessPassword pw) = "AccessPassword " <> toMarkup pw
+  toMarkup (AccessUser ui)     = "AccessUser " <> toMarkup ui
 
 
 instance PathPiece AccessOption where
@@ -70,3 +77,7 @@ newtype AccessPolicy = AccessPolicy {
                      deriving (Show,Read,Eq,Ord,Semigroup,Monoid)
 $(deriveSafeCopy 0 'base ''AccessPolicy)
 makeLenses ''AccessPolicy
+
+
+lookupAccessRights   :: AccessOption -> AccessPolicy -> S.Set AccessRight
+lookupAccessRights k = fromMaybe mempty . M.lookup k . _accessOptions

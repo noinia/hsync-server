@@ -2,7 +2,7 @@
 module HSync.Server.Handler.User where
 
 import Control.Lens
-import Data.Maybe(mapMaybe)
+-- import Data.Maybe(mapMaybe)
 import HSync.Server.Import
 import qualified Data.IxSet as I
 import qualified Data.Map as M

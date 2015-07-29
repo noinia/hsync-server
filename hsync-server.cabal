@@ -15,6 +15,7 @@ library
     hs-source-dirs: src, app
     exposed-modules: HSync.Server.Application
                      HSync.Server.AcidState
+                     HSync.Server.Authorization
                      HSync.Server.Foundation
                      HSync.Server.Import
                      HSync.Server.Import.NoFoundation

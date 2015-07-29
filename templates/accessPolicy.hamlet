@@ -1,3 +1,22 @@
 <h1>Modify Access Policy for #{ri}: #{p}
 
-#{show ap}
+<table .table>
+  <thead>
+    <tr>
+      <td >Access Option
+      $forall r <- allRights
+        <td >#{r}
+      <td >Edit
+
+  <tbody>
+    $forall ai@(AccessItem o rs) <- allOpts
+      <tr>
+        <td >#{show o}
+        $forall r <- allRights
+          <td >
+            $if S.member r rs
+              #{okIcon}
+        <td ><a href=@{ModifyAccessItemR ai ri p}>
+          <span .glyphicon .glyphicon-cog aria-hidden="true"></a>
+
+
