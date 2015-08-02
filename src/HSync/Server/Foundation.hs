@@ -1,4 +1,5 @@
 {-# LANGUAGE FlexibleInstances #-}
+{-# LANGUAGE LambdaCase #-}
 module HSync.Server.Foundation where
 
 import HSync.Server.Import.NoFoundation
@@ -13,6 +14,7 @@ import HSync.Server.User
 import HSync.Server.Realm
 import HSync.Server.LocalAuth
 import HSync.Server.AcidState
+import HSync.Server.Authorization
 import HSync.Common.AcidState
 import HSync.Common.API
 
@@ -84,10 +86,37 @@ instance Yesod App where
 
     -- Routes not requiring authentication.
     isAuthorized (AuthR _) _ = return Authorized
-    isAuthorized FaviconR _ = return Authorized
-    isAuthorized RobotsR _ = return Authorized
+    isAuthorized FaviconR  _ = return Authorized
+    isAuthorized RobotsR   _ = return Authorized
     -- Default to Authorized for now.
-    isAuthorized _ _ = return Authorized
+    isAuthorized (APIR APILoginR)               _ = return Authorized
+
+    isAuthorized (APIR (ListenNowR       ri   p)) _ = requireAll [Read] Nothing ri p
+    isAuthorized (APIR (ListenR        _ ri   p)) _ = requireAll [Read] Nothing ri p
+    isAuthorized (APIR (CurrentRealmR    ri   p)) _ = requireAll [Read] Nothing ri p
+    isAuthorized (APIR (DownloadR        ri _ p)) _ = requireAll [Read] Nothing ri p
+    isAuthorized (APIR (FileR            ri _ p)) _ = requireAll [Read] Nothing ri p
+    isAuthorized (APIR (DownloadCurrentR ri   p)) _ = requireAll [Read] Nothing ri p
+
+    isAuthorized (APIR (CreateDirR _ ri   p)) _ = requireAll [Read, Write] Nothing ri p
+    isAuthorized (APIR (StoreFileR _ ri _ p)) _ = requireAll [Read, Write] Nothing ri p
+    isAuthorized (APIR (DeleteR    _ ri _ p)) _ = requireAll [Read, Write] Nothing ri p
+
+
+    isAuthorized (WebCreateDirR   ri   p) _ = requireAll [Read, Write] Nothing ri p
+    isAuthorized (WebStoreFileR   ri   p) _ = requireAll [Read, Write] Nothing ri p
+    isAuthorized (WebDeleteR      ri _ p) _ = requireAll [Read, Write] Nothing ri p
+
+    isAuthorized (AccessPolicyR       ri p) _ = requireAll [Read, Write] Nothing ri p
+    isAuthorized (ModifyAccessItemR _ ri p) _ = requireAll [Read, Write] Nothing ri p
+
+    isAuthorized (ViewRealmR ri p) _ = requireAll [Read] Nothing ri p
+
+    -- TODO: this is not a great idea
+    isAuthorized ListUsersR           _ = return Authorized
+    isAuthorized (ListUserRealmsR un) _ = return Authorized
+
+    isAuthorized _ _ = return AuthenticationRequired
 
     -- This function creates static content files in the static folder
     -- and names them based on a hash of their content. This allows
@@ -127,6 +156,27 @@ instance Yesod App where
 
 
 
+requireAll              :: [AccessRight] -> Maybe HashedPassword
+                        -> RealmId -> Path -> Handler AuthResult
+requireAll reqs mpw ri p = f <$> gatherRights mpw ri p
+  where
+    f rs
+      | (S.fromList reqs) `S.isSubsetOf` rs = Authorized
+      | otherwise                           = AuthenticationRequired
+
+
+gatherRights           :: Maybe HashedPassword -> RealmId -> Path
+                       -> Handler (S.Set AccessRight)
+gatherRights mpw  ri p = queryAcid (QueryRealm ri) >>= \case
+    Nothing -> do setMessage "No such realm"
+                  notFound
+    Just r  -> do
+                 mu <- maybeAuthId
+                 let mui = (^.userId) <$> mu
+                 pure $ gatherAll mui mpw p (r^.realmTree)
+
+
+defaultLayout'        :: Widget -> Handler Html
 defaultLayout' layout = do
         -- master <- getImplementation
         mmsg   <- getMessage
@@ -152,38 +202,8 @@ defaultLayout' layout = do
                 $(widgetFile "default-layout")
         withUrlRenderer $(hamletFile "templates/default-layout-wrapper.hamlet")
 
-
-
-
+jumbotronLayout :: Widget -> Widget -> Handler Html
 jumbotronLayout jumboContent mainContent = defaultLayout' $(widgetFile "jumbotron-layout")
-
-
-
-  -- do
-  --       -- master <- getImplementation
-  --       mmsg   <- getMessage
-  --       muser  <- maybeAuthId
-
-  --       let loginR'     = AuthR loginR
-  --           userMenu    = maybe $(widgetFile "loginForm")
-  --                               (\user -> $(widgetFile "userLoggedIn"))
-  --                               muser
-  --       -- We break up the default layout into two components:
-  --       -- default-layout is the contents of the body tag, and
-  --       -- default-layout-wrapper is the entire page. Since the final
-  --       -- value passed to hamletToRepHtml cannot be a widget, this allows
-  --       -- you to use normal widget features in default-layout.
-
-  --       pc <- widgetToPageContent $ do
-  --               setTitle "Welcome To HSync!"
-  --               $(combineStylesheets 'StaticR [ css_bootstrap_css --  css_normalize_css
-  --                                             , css_default_css
-  --                                             ])
-  --               $(widgetFile "jumbotron-layout")
-  --       withUrlRenderer $(hamletFile "templates/default-layout-wrapper.hamlet")
-
-
-
 
 -- How to access the stuff that we store using acid state
 
@@ -235,11 +255,7 @@ instance YesodAuth App where
 
     authHttpManager = getHttpManager
 
-lookupUser    :: UserName -> HandlerT App IO (AuthenticationResult App)
-lookupUser un = maybe (UserError InvalidLogin) Authenticated
-             <$> queryAcid (LookupUserByName un)
 
--- instance YesodAuthPersist App
 
 -- This instance is required to use forms. You can modify renderMessage to
 -- achieve customized and internationalized form validation messages.

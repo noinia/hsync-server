@@ -36,6 +36,11 @@ userExists   :: AcidMonad m LookupUserByName => UserName -> m Bool
 userExists u = isJust <$> queryAcid (LookupUserByName u)
 
 
+lookupUser    :: (AcidMonad (HandlerT master IO) LookupUserByName, AuthId master ~ User)
+              => UserName -> HandlerT master IO (AuthenticationResult master)
+lookupUser un = maybe (UserError Msg.InvalidLogin) Authenticated
+             <$> queryAcid (LookupUserByName un)
+
 --------------------------------------------------------------------------------
 --  The Auth plugin
 
