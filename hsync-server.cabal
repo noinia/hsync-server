@@ -48,6 +48,7 @@ library
                      HSync.Common.User
                      HSync.Common.Util
                      HSync.Common.OrphanInstances
+                     -- HSync.Common.Zip
 
 
     if flag(dev) || flag(library-only)
@@ -129,6 +130,7 @@ library
                  , time
                  , http-types                    >= 0.8     && < 0.9
                  , case-insensitive              >= 1.2     && < 1.3
+                 -- , zip-conduit                   >= 0.2
 
 
 executable         hsync-server

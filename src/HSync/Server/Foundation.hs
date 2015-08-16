@@ -3,6 +3,7 @@
 module HSync.Server.Foundation where
 
 import HSync.Server.Import.NoFoundation
+import HSync.Server.Types
 import Text.Hamlet          (hamletFile)
 import Text.Jasmine         (minifym)
 import Yesod.Auth.Message   (AuthMessage (InvalidLogin))
@@ -88,7 +89,9 @@ instance Yesod App where
     isAuthorized (AuthR _) _ = return Authorized
     isAuthorized FaviconR  _ = return Authorized
     isAuthorized RobotsR   _ = return Authorized
-    -- Default to Authorized for now.
+    isAuthorized HomeR     _ = return Authorized
+    isAuthorized AboutR    _ = return Authorized
+
     isAuthorized (APIR APILoginR)               _ = return Authorized
 
     isAuthorized (APIR (ListenNowR       ri   p)) _ = requireAll [Read] Nothing ri p
@@ -109,6 +112,11 @@ instance Yesod App where
 
     isAuthorized (AccessPolicyR       ri p) _ = requireAll [Read, Write] Nothing ri p
     isAuthorized (ModifyAccessItemR _ ri p) _ = requireAll [Read, Write] Nothing ri p
+
+    isAuthorized (AddAccessItemStartR  ri p) _ = requireAll [Read, Write] Nothing ri p
+    isAuthorized (AddAccessItemR     _ ri p) _ = requireAll [Read, Write] Nothing ri p
+
+
 
     isAuthorized (ViewRealmR ri p) _ = requireAll [Read] Nothing ri p
 
@@ -227,6 +235,9 @@ createHomeRealm u = do dt <- currentTime
     rn  = FileName $ u^.userName.unUserName
     ap  = AccessPolicy $
           M.singleton (AccessUser (u^.userId)) (S.fromList [Read,Write])
+
+
+
 
 instance YesodAuth App where
     type AuthId App = User

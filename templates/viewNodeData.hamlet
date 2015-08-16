@@ -11,3 +11,7 @@
 <p>
   <a .btn .btn-lg .btn-primary
      href=@{APIR $ DownloadCurrentR ri p} role="button">Download</a>
+
+  <a .btn .btn-lg .btn-primary
+     href=@{AccessPolicyR ri p} role="button">Access Policy</a>
+

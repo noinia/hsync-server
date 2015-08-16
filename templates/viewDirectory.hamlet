@@ -22,6 +22,7 @@
       <col .iconCol>
       <col .iconCol>
       <col .iconCol>
+      <col .iconCol>
 
       <tbody>
         $forall c <- chs
@@ -29,14 +30,17 @@
             <td .file>#{iconOf c}
             <td .fileName><a href=@{ViewRealmR ri (pathOf c)}> #{view name c}</a>
             <td .download>
-              <a href=@{APIR $ DownloadR ri (fileKindOf c) (pathOf c)}>
-                <span class="glyphicon glyphicon-download-alt" aria-hidden="true"></a>
+              <a href=@{APIR $ DownloadR ri (fileKindOf c) (pathOf c)} title="Download">
+                <span class="glyphicon glyphicon-download-alt" aria-label="true"></a>
+            <td .share>
+              <a href=@{AccessPolicyR ri (pathOf c)} title="Share">
+                <span class="glyphicon glyphicon-share-alt" aria-label="true"></a>
             <td .inspect>
-              <a href=@{ViewRealmR ri (pathOf c)}>
-                <span class="glyphicon glyphicon-search" aria-hidden="true"></a>
+              <a href=@{ViewRealmR ri (pathOf c)} title="Inspect">
+                <span class="glyphicon glyphicon-search" aria-label="true"></a>
             <td .remove>
               $if exists (fileKindOf c)
-                <a href=@{WebDeleteR ri (fileKindOf c) (pathOf c)}>
+                <a href=@{WebDeleteR ri (fileKindOf c) (pathOf c)} title="Remove">
               $else
                 <a href="#">
-              <span class="glyphicon glyphicon-remove" aria-hidden="true"></a>
+              <span class="glyphicon glyphicon-remove" aria-label="true"></a>

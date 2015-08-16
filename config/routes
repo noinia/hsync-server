@@ -1,27 +1,31 @@
-/static                                                StaticR Static    getStatic
-/auth                                                  AuthR   Auth      getAuth
-/api                                                   APIR    HSyncAPI  getHSyncAPI
+/static                                                                                      StaticR Static    getStatic
+/auth                                                                                        AuthR   Auth      getAuth
+/api                                                                                         APIR    HSyncAPI  getHSyncAPI
 
 
-/                                                      HomeR                  GET
+/                                                                                            HomeR                  GET
+/about                                                                                       AboutR                 GET
 
 
-/view/realm/#RealmId/*Path                             ViewRealmR             GET
+/view/realm/#RealmId/*Path                                                                   ViewRealmR             GET
 
-/create/directory/#RealmId/*Path                       WebCreateDirR          POST
-/store/file/#RealmId/*Path                             WebStoreFileR          POST
-/delete/#RealmId/#FileKind/*Path                       WebDeleteR             GET
+/create/directory/#RealmId/*Path                                                             WebCreateDirR          POST
+/store/file/#RealmId/*Path                                                                   WebStoreFileR          POST
+/delete/#RealmId/#FileKind/*Path                                                             WebDeleteR             GET
 
-/accessPolicy/view/#RealmId/*Path                      AccessPolicyR          GET POST
-/accessPolicy/item/#AccessItem/#RealmId/*Path          ModifyAccessItemR      GET POST
+/accessPolicy/view/#RealmId/*Path                                                            AccessPolicyR          GET
+/accessPolicy/item/#AccessItem/#RealmId/*Path                                                ModifyAccessItemR      GET POST
+
+/accessPolicy/add/item/start/#RealmId/*Path                                                  AddAccessItemStartR        POST
+/accessPolicy/add/item/save/#AccessOptionType/#RealmId/*Path                                   AddAccessItemR             POST
 
 
-/user/profile/#UserName                                UserProfileR           GET
-/user/realms/#UserName                                 ListUserRealmsR        GET
+/user/profile/#UserName                                                                      UserProfileR           GET
+/user/realms/#UserName                                                                       ListUserRealmsR        GET
 
 
-/admin/users                                           ListUsersR             GET
-/admin/realms                                          ListRealmsR            GET
+/admin/users                                                                                 ListUsersR             GET
+/admin/realms                                                                                ListRealmsR            GET
 
-/favicon.ico                                           FaviconR               GET
-/robots.txt                                            RobotsR                GET
+/favicon.ico                                                                                 FaviconR               GET
+/robots.txt                                                                                  RobotsR                GET

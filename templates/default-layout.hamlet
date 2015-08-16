@@ -8,8 +8,14 @@
           <span .icon-bar>
           <span .icon-bar>
           <span .icon-bar>
-      <a .navbar-brand href="#">HSync
+      <a .navbar-brand href=@{AboutR}>HSync
     <div #navbar .navbar-collapse .collapse>
+      <ul .nav .navbar-nav>
+        <li><a href=@{HomeR}>
+            <span class="glyphicon glyphicon-home" aria-hidden="true">Home</a>
+        <li><a href=@{AboutR}>
+            <span class="glyphicon glyphicon-info-sign" aria-hidden="true">About</a>
+
       ^{userMenu}
 
 $maybe msg <- mmsg

@@ -11,12 +11,20 @@
   <tbody>
     $forall ai@(AccessItem o rs) <- allOpts
       <tr>
-        <td >#{show o}
+        <td >#{o}
         $forall r <- allRights
           <td >
             $if S.member r rs
               #{okIcon}
         <td ><a href=@{ModifyAccessItemR ai ri p}>
           <span .glyphicon .glyphicon-cog aria-hidden="true"></a>
+
+<div #addAccessOption>
+
+  <h1>Add Access Option
+
+  <form method=post action=@{AddAccessItemStartR ri p} enctype=#{enctype}>
+    ^{widget}
+    <button type="submit" .btn .btn-success>Add
 
 

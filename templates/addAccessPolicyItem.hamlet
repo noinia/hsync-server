@@ -1,0 +1,6 @@
+<form .addAccessItem method=post action=@{AddAccessItemR t ri p} enctype=#{enctype}>
+  <h1>Add Access Option for #{ri}: #{p}
+
+  ^{widget}
+
+  <button type="submit" .btn .btn-success>Save

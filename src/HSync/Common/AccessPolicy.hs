@@ -36,7 +36,7 @@ makePrisms ''AccessOption
 instance ToMarkup AccessOption where
   toMarkup AccessAnonymous     = "AccessAnonymous"
   toMarkup (AccessPassword pw) = "AccessPassword " <> toMarkup pw
-  toMarkup (AccessUser ui)     = "AccessUser " <> toMarkup ui
+  toMarkup (AccessUser ui)     = "AccessUser" <> toMarkup ui
 
 
 instance PathPiece AccessOption where

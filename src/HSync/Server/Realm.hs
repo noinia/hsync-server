@@ -1,3 +1,4 @@
+{-# LANGUAGE LambdaCase #-}
 module HSync.Server.Realm( Realms(Realms), realmMap, nextRealmId
 
                           -- * Acididic Operations
@@ -9,6 +10,9 @@ module HSync.Server.Realm( Realms(Realms), realmMap, nextRealmId
                          , AddFile(..)
                          , AddDirectory(..)
                          , Delete(..)
+
+
+                         , SetAccessPolicy(..)
 
                            -- * Re-exports from Common.Realm:
                          , Realm(Realm), realmTree
@@ -78,6 +82,12 @@ queryRealms = ask
 queryRealm   :: RealmId -> Query Realms (Maybe Realm)
 queryRealm i = M.lookup i . _realmMap <$> ask
 
+
+modifyRealm     :: RealmId -> (Realm -> Realm) -> Update Realms Bool
+modifyRealm i f = liftQuery (queryRealm i) >>= \case
+                    Nothing -> pure False
+                    Just r  -> updateRealm i (f r) >> pure True
+
 updateRealm     :: RealmId -> Realm -> Update Realms ()
 updateRealm i r = modify (&realmMap %~ (M.insert i r))
 
@@ -140,6 +150,18 @@ delete ri p currentKind m = checkAndUpdate ri p currentKind
                                            (Realm.delete p m)
 
 
+--------------------------------------------------------------------------------
+-- * Access Policy stuff
+
+setAccessPolicy                           :: LastModified -> AccessItem -> RealmId -> Path
+                                          -> Update Realms Bool
+setAccessPolicy lm (AccessItem o rs) ri p =
+    modifyRealm ri (Realm.updateAccessPolicyOf p f lm)
+  where
+    f pol = pol&accessOptions %~ M.insert o rs
+
+--------------------------------------------------------------------------------
+
 $(makeAcidic ''Realms [ 'queryRealms
 
                       , 'createRealm
@@ -151,4 +173,6 @@ $(makeAcidic ''Realms [ 'queryRealms
                       , 'addFile
                       , 'addDirectory
                       , 'delete
+
+                      , 'setAccessPolicy
                       ])
