@@ -42,5 +42,5 @@
   <p>
     <a .btn .btn-warning title="Removes the most recent version"
         href=@{WebDeleteR ri fk p} role="button">
-      <span .glyphicon .glyphicon-share-alt aria-hidden="true">
+      <span .glyphicon .glyphicon-remove aria-hidden="true">
       Delete</a>

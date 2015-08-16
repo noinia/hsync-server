@@ -1,6 +1,6 @@
 <div>
 
-  <div .jumbotron>
+  <div .jumbotron #jumbotron>
     <div .container>
       ^{jumboContent}
 
