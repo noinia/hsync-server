@@ -1,14 +1,19 @@
-<div #versions .container>
-  <div .col-md-1 .container .versions-control>
-    <a .left href="#versionCarousel" role="button">
-      <span .glyphicon .glyphicon-chevron-left aria-hidden="true">
-      <span .sr-only>Previous</a>
+<div #versions .container .carousel .slide data-ride="carousel" data-interval="false" data-wrap="false">
+
+  <div class="carousel-inner" role="listbox">
+    $forall (i,v,widgetV) <- toList allRenders
+
+      <div .version .item :isOne i:.active>
+        <div .container>
+          ^{widgetV}
+
+  <a .left .carousel-control href="#versions" title="Later version"
+      role="button" data-slide="prev">
+    <span .glyphicon .glyphicon-chevron-left aria-hidden="true">
+    <span .sr-only>Later version</a>
 
 
-  <div .col-md-10  .container #versionsMain>
-    ^{firstW}
-
-  <div .col-md-1  .container  .versions-control>
-    <a .right href="#versionCarousel" role="button">
-      <span .glyphicon .glyphicon-chevron-right aria-hidden="true">
-      <span .sr-only>Next</a>
+  <a .right .carousel-control href="#versions" title="Earlier version"
+      role="button" data-slide="next">
+    <span .glyphicon .glyphicon-chevron-right aria-hidden="true">
+    <span .sr-only>Earler version</a>

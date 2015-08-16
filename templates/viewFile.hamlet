@@ -1,11 +1,23 @@
 <div .file>
   <h1 .fileKind>#{fileIcon} File
+    <a .jumpToMostRecent href="#versions" title="Most recent version"
+        data-slide-to="0" role="button">
+      <span .glyphicon .glyphicon-chevron-up aria-hidden="true">
+      <span .sr-only>Most recent version</a>
+
 
   <h2>Last Modified
 
   ^{lastModifiedWidget}
 
+  <h2>File Signature
+
   <table .table>
-  <tr>
-    <td .lbl>Signature
-    <td .value>#{show sig}
+    <tr>
+      <td .lbl>Signature
+      <td .value>#{sig}
+
+  <a .btn .btn-primary
+      href=@{APIR $ DownloadR ri (view fileKind v) p} role="button">
+    <span .glyphicon .glyphicon-download-alt aria-hidden="true">
+    Download this version</a>

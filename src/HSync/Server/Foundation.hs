@@ -92,6 +92,9 @@ instance Yesod App where
     isAuthorized HomeR     _ = return Authorized
     isAuthorized AboutR    _ = return Authorized
 
+    isAuthorized (UserProfileR un) _    = authorizedIfSelf un
+    isAuthorized (ListUserRealmsR un) _ = authorizedIfSelf un
+
     isAuthorized (APIR APILoginR)               _ = return Authorized
 
     isAuthorized (APIR (ListenNowR       ri   p)) _ = requireAll [Read] Nothing ri p
@@ -122,7 +125,6 @@ instance Yesod App where
 
     -- TODO: this is not a great idea
     isAuthorized ListUsersR           _ = return Authorized
-    isAuthorized (ListUserRealmsR un) _ = return Authorized
 
     isAuthorized _ _ = return AuthenticationRequired
 
@@ -163,6 +165,11 @@ instance Yesod App where
     maximumContentLength _ _          = Just $ 2 * 1024 * 1024 -- 2 megabytes
 
 
+hasRights               :: [AccessRight] -> Maybe HashedPassword -> RealmId -> Path
+                        -> Handler Bool
+hasRights reqs mpw ri p = f <$> gatherRights mpw ri p
+  where
+    f rs = S.fromList reqs `S.isSubsetOf` rs
 
 requireAll              :: [AccessRight] -> Maybe HashedPassword
                         -> RealmId -> Path -> Handler AuthResult
@@ -206,6 +213,7 @@ defaultLayout' layout = do
                 addScript $ StaticR js_bootstrap_min_js
 
                 $(combineStylesheets 'StaticR [ css_bootstrap_css --  css_normalize_css
+
                                               ])
                 $(widgetFile "default-layout")
         withUrlRenderer $(hamletFile "templates/default-layout-wrapper.hamlet")

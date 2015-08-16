@@ -38,3 +38,7 @@ deleteFileOrDir                     :: ClientId -> RealmId -> Path -> FileKind
 deleteFileOrDir ci ri p currentKind = getLastModified ci >>= \case
     Left err -> return $ Left err
     Right lm -> updateAcid $ Delete ri p currentKind lm
+
+
+queryRealmName :: RealmId -> Handler (Maybe RealmName)
+queryRealmName = fmap (fmap (^.realmName)) . queryAcid . QueryRealm

@@ -1,17 +1,46 @@
-<h1 .nodeName>#{view name node}
+<div .col-md-9>
 
-<table .table>
-  <tr>
-    <td .lbl>Realm
-    <td .value>#{ri}
-  <tr>
-    <td .lbl>Measurement
-    <td .value>#{view measurement node}
+  <h1 #nodeName>#{view name node}
 
-<p>
-  <a .btn .btn-lg .btn-primary
-     href=@{APIR $ DownloadCurrentR ri p} role="button">Download</a>
+  <table .table>
 
-  <a .btn .btn-lg .btn-primary
-     href=@{AccessPolicyR ri p} role="button">Access Policy</a>
+    <tr>
+      <td .lbl>Filename
+      <td .value>#{view name node}
+    <tr>
+      <td .lbl>Realm & Parent
+      <td .value>
+        <a href=@{ViewRealmR ri (Path [])}>
+          $maybe n <- rn
+            #{n}
+          $nothing
+            #{ri}
 
+        <a href=@{ViewRealmR ri (parentOf p)}>#{parentPath}</a>
+
+    <tr>
+      <td .lbl>Measurement
+      <td .value>#{view measurement node}
+    <tr>
+      <td .lbl># Versions
+      <td .value>#{numVersions}
+
+<div .col-md-3 .operations>
+
+  <p>
+    <a .btn .btn-lg .btn-primary
+        href=@{APIR $ DownloadCurrentR ri p} role="button">
+      <span .glyphicon .glyphicon-download-alt aria-hidden="true">
+      Download</a>
+
+  <p>
+    <a .btn .btn-info
+        href=@{AccessPolicyR ri p} role="button">
+      <span .glyphicon .glyphicon-share-alt aria-hidden="true">
+      Access Policy</a>
+
+  <p>
+    <a .btn .btn-warning title="Removes the most recent version"
+        href=@{WebDeleteR ri fk p} role="button">
+      <span .glyphicon .glyphicon-share-alt aria-hidden="true">
+      Delete</a>

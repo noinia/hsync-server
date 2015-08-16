@@ -1,10 +1,10 @@
 <table .table>
   <tr>
     <td .lbl>Owner
-    <td .value>#{user}
+    <td .value>#{userName'}
   <tr>
     <td .lbl>Modification Date
     <td .value>#{modifiedTime}
   <tr>
     <td .lbl>Modified using
-    <td .value>#{client}
+    <td .value>#{clientName}

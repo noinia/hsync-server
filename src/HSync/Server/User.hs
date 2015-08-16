@@ -13,8 +13,6 @@ module HSync.Server.User( UserIndex(..)
                           -- * Re-exports from Common.User:
                         , User(User), userId, userName, realName, password, clients, realms
 
-                        , Client(Client), clientId, clientName
-
                         , addRealm
                         ) where
 

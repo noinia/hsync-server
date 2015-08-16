@@ -1,5 +1,7 @@
-<div class="navbar-right">
-  <p class="navbar-text">
-    #{view realName user}
+<div .navbar-right>
+  <a .navbar-btn .btn .noLink
+      href=@{UserProfileR (view userName user)} title="User Profile">
+    <span .glyphicon .glyphicon-user aria-hidden="true">
+    #{view realName user}</a>
 
-  <a class="navbar-btn btn btn-success" href="@{AuthR LogoutR}">Logout</a>
+  <a .navbar-btn .btn .btn-warning href="@{AuthR LogoutR}">Logout</a>

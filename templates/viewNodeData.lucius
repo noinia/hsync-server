@@ -1,5 +1,8 @@
-.nodeName {
+#nodeName {
     margin-top: 0;
+    display: block;
+    word-break: break-all;
+    width: 100%;
 }
 
 .lbl {
@@ -21,4 +24,9 @@
 
 .fileKind .glyphicon {
     margin-right: 10px;
+}
+
+.operations {
+    padding-top: 40px;
+
 }

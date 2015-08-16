@@ -1,0 +1,55 @@
+<div .userProfile>
+  <h1>#{view userName user}
+
+  <h2>User profile
+
+  <table .table>
+    <tr>
+      <td .lbl>UserId
+      <td .value>#{view userId user}
+    <tr>
+      <td .lbl>Username
+      <td .value>#{view userName user}
+    <tr>
+      <td .lbl>Real name
+      <td .value>#{view realName user}
+
+  <a .btn .btn-warning
+     href="#" role="button">Change Password</a>
+
+  <h2>Clients
+
+  <table .table>
+    <thead>
+      <tr>
+        <td .lbl>ClientId
+        <td .value>ClientName
+
+    $forall (ci,cn) <- allClients
+      <tr>
+        <td .lbl>#{ci}
+        <td .value>#{cn}
+
+  <a .btn .btn-success
+     href="#" role="button">Add Client</a>
+
+  <h2>Realms
+
+  <table .table>
+    <thead>
+      <tr>
+        <td .lbl>RealmId
+        <td .realmName>RealmName
+        <td .path>Path
+
+    $forall (AccessPoint ri p, mrn) <- allRealms
+      <tr>
+        <td .lbl>#{ri}
+        <td .realmName>
+          $maybe rn <- mrn
+            <a href=@{ViewRealmR ri p}>#{rn}</a>
+        <td .path><a href=@{ViewRealmR ri p}>#{p}</a>
+
+
+  <a .btn .btn-success
+     href="#" role="button">Create new Realm</a>

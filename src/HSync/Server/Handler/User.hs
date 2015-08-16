@@ -1,9 +1,12 @@
 {-# LANGUAGE TupleSections #-}
+{-# LANGUAGE LambdaCase #-}
 module HSync.Server.Handler.User where
 
 import Control.Lens
 -- import Data.Maybe(mapMaybe)
 import HSync.Server.Import
+import HSync.Server.Handler.AcidUtils(queryRealmName)
+
 import qualified Data.IxSet as I
 import qualified Data.Map as M
 
@@ -32,5 +35,12 @@ getListUserRealmsR ui = do
 
 
 
-getUserProfileR :: UserName -> Handler Html
-getUserProfileR = undefined
+getUserProfileR    :: UserName -> Handler Html
+getUserProfileR un = queryAcid (LookupUserByName un) >>= \case
+    Nothing   -> notFound
+    Just user -> do
+      allRealms <- mapM (\ap -> (ap,) <$> queryRealmName (ap^.accessPointRealm))
+                .  toList $ user^.realms
+      defaultLayout $(widgetFile "userProfile")
+      where
+        allClients = M.assocs $ user^.clients

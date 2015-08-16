@@ -34,8 +34,11 @@ $(deriveSafeCopy 0 'base ''Path)
 $(deriveJSON defaultOptions ''Path)
 makeLenses ''Path
 
-parentOf          :: Path -> Path
-parentOf (Path p) = Path . L.init $ p
+-- | Parent of the root is the root itself
+parentOf           :: Path -> Path
+parentOf (Path []) = Path []
+parentOf (Path p)  = Path . L.init $ p
+
 
 instance PathMultiPiece Path where
     fromPathMultiPiece xs      = Path <$> mapM fromPathPiece xs
@@ -132,7 +135,7 @@ hashPassword = HashedPassword . hash' . _unPassword
 --------------------------------------------------------------------------------
 
 newtype Signature = Signature { _signatureData :: Text }
-                    deriving (Show,Read,Eq,Ord,ToJSON,FromJSON,PathPiece)
+                    deriving (Show,Read,Eq,Ord,ToJSON,FromJSON,PathPiece,ToMarkup)
 $(deriveSafeCopy 0 'base ''Signature)
 makeLenses ''Signature
 

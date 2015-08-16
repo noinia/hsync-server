@@ -13,7 +13,7 @@ module HSync.Common.Realm(
                          , realmRoot
 
 
-                         , realmName
+                         , realmName, RealmName
                          , access
                          , accessWithRealmName
 

@@ -16,19 +16,19 @@ import qualified Data.Set as S
 
 
 
-data Client = Client { _clientId   :: ClientId
-                     , _clientName :: ClientName
-                     }
-              deriving (Show,Read,Eq,Ord,Typeable)
-$(deriveSafeCopy 0 'base ''Client)
-makeLenses ''Client
+-- data Client = Client { _clientId   :: ClientId
+--                      , _clientName :: ClientName
+--                      }
+--               deriving (Show,Read,Eq,Ord,Typeable)
+-- $(deriveSafeCopy 0 'base ''Client)
+-- makeLenses ''Client
 
 
 data User = User { _userId    :: UserId
                  , _userName  :: UserName
                  , _realName  :: RealName
                  , _password  :: HashedPassword
-                 , _clients   :: Set (Client)
+                 , _clients   :: Map ClientId ClientName
                  , _realms    :: Set (AccessPoint)
                  }
             deriving (Show,Read,Eq,Ord,Typeable)

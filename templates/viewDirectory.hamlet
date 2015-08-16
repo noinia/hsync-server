@@ -1,15 +1,21 @@
 <div .directory>
   <h1 .fileKind>#{directoryIcon} Directory
+    <a .jumpToMostRecent href="#versions" title="Most recent version"
+        data-slide-to="0" role="button">
+      <span .glyphicon .glyphicon-chevron-up aria-hidden="true">
+      <span .sr-only>Most recent version</a>
 
   <h2>Last Modified
 
   ^{lastModifiedWidget}
 
-  <h2>Create a new directory or upload a new file
+  $if showAddWidgets
+    <h2>Create a new directory or upload a new file
 
-  ^{createDirWidget}
+    ^{createDirWidget}
 
-  ^{storeFileWidget}
+    ^{storeFileWidget}
+
 
   <h2>Directory Contents
 

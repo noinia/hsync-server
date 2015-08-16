@@ -1,0 +1,7 @@
+a.noLink {
+    color: grey;
+}
+
+a:hover.noLink {
+    color: white;
+}

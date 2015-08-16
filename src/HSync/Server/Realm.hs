@@ -22,6 +22,7 @@ module HSync.Server.Realm( Realms(Realms), realmMap, nextRealmId
                          , children, nodeData, name, measurement
                          , HasVersions(..)
                          , lookupByName
+                         , Realm.RealmName, Realm.realmName
 
                          , AccessPoint(AccessPoint), accessPointRealm, accessPointPath
 

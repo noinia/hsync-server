@@ -1,12 +1,15 @@
 {-# LANGUAGE LambdaCase #-}
+{-# LANGUAGE TupleSections #-}
 module HSync.Server.Handler.Realm where
 
 import Control.Lens hiding (children)
 import HSync.Server.Import
 import HSync.Server.Handler.ManualUpload(webCreateDir, webStoreFile)
+import HSync.Server.Handler.AcidUtils(queryRealmName)
 
 import qualified Data.Map as M
 import qualified Data.List.NonEmpty as NE
+import qualified Data.Text as T
 
 --------------------------------------------------------------------------------
 
@@ -22,15 +25,27 @@ getViewRealmR ri p = do
 
 getViewRealmR'           :: RealmId -> Path -> RealmTree -> Handler Html
 getViewRealmR' ri p node = do
-    firstW   <- renderVersion x
+    rn <- queryRealmName ri
+    allRenders <- mapM (\(i,v) -> (i,v,) <$> getViewNodeVersion ri p node v)
+               $ NE.zip (NE.fromList [1..]) allVersions
     jumbotronLayout $(widgetFile "viewNodeData")
                     $(widgetFile "nodeVersions")
   where
-    allVersions = node^.nodeData.versions
-    (x NE.:| _) = withPrevAndNext allVersions
+    allVersions@(latestVersion NE.:| _) = node^.nodeData.versions
+    numVersions = NE.length allVersions
 
-    renderVersion (mRecent,cur,mPrev) = getViewNodeVersion ri p node cur
+    fk = latestVersion^.fileKind
 
+    isOne i = i == 1
+
+    parentPath = let ps = map (^.unFileName) $ (parentOf p)^.pathParts
+                 in "/" <> T.intercalate "/" ps
+
+
+
+-- | get a specific version with the given last mod. time
+getViewRealmVersionR         :: RealmId -> DateTime -> Path -> Handler Html
+getViewRealmVersionR ri dt p = undefined
 
 
 withPrevAndNext    :: NE.NonEmpty a -> NE.NonEmpty (Maybe a, a, Maybe a)
@@ -42,19 +57,18 @@ withPrevAndNext xs = NE.fromList $ zip3 prevs xs' nexts
 
 getViewNodeVersion                       :: RealmId -> Path -> RealmTree -> FileVersion
                                          -> Handler Widget
-getViewNodeVersion ri p@(Path ps) node v = case v^.fileKind of
-    NonExistent -> return $(widgetFile "nonExistent")
-    Directory   -> do
-                     createDirWidget <- webCreateDir ri p
-                     storeFileWidget <- webStoreFile ri p
-                     return $(widgetFile "viewDirectory")
-    File sig    -> return $(widgetFile "viewFile")
+getViewNodeVersion ri p@(Path ps) node v = do
+    lastModifiedWidget <- getLastModifiedWidget v
+    case v^.fileKind of
+      NonExistent -> return $(widgetFile "nonExistent")
+      Directory   -> do
+                       showAddWidgets     <- (&& isLatest)
+                                         <$> hasRights [Write] Nothing ri p
+                       createDirWidget    <- webCreateDir ri p
+                       storeFileWidget    <- webStoreFile ri p
+                       return $(widgetFile "viewDirectory")
+      File sig    -> return $(widgetFile "viewFile")
   where
-    lastModifiedWidget = let user         = v^.lastModified.modUser
-                             client       = v^.lastModified.modClient
-                             modifiedTime = v^.lastModified.modificationTime
-                         in $(widgetFile "lastModified")
-
     chs                = fmap (^.unOrdByName) . toList $ node^.children
 
     pathOf     c = Path $ ps <> [c^.name]
@@ -62,6 +76,16 @@ getViewNodeVersion ri p@(Path ps) node v = case v^.fileKind of
 
     isNonExistent = not . exists . fileKindOf
 
+    isLatest = node^.nodeData.headVersionLens == v
+
+getLastModifiedWidget   :: FileVersion -> Handler Widget
+getLastModifiedWidget v = do
+    user <- queryAcid . LookupUserById $ v^.lastModified.modUser
+    let clientId     = v^.lastModified.modClient
+        modifiedTime = v^.lastModified.modificationTime
+        userName'    = user^._Just.userName.unUserName
+        clientName   = webClientName -- fromMaybe webClientName $ user^._Just.clients.at clientId
+    return $(widgetFile "lastModified")
 
 
 
