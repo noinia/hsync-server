@@ -40,6 +40,9 @@ parentOf (Path []) = Path []
 parentOf (Path p)  = Path . L.init $ p
 
 
+isSubPathOf :: Path -> Path -> Bool
+(Path p) `isSubPathOf` (Path q) = p `isPrefixOf` q
+
 instance PathMultiPiece Path where
     fromPathMultiPiece xs      = Path <$> mapM fromPathPiece xs
     toPathMultiPiece (Path fs) = map toPathPiece fs

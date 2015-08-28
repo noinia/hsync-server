@@ -42,6 +42,7 @@ library
                      HSync.Common.DateTime
                      HSync.Common.FileVersion
                      HSync.Common.Header
+                     HSync.Common.Notification
                      HSync.Common.Realm
                      HSync.Common.StorageTree
                      HSync.Common.Types
