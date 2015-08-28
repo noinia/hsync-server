@@ -36,8 +36,12 @@ postWebCreateDirR ri parent = do
 -- | Code that generates the widget/form which can be used to create a new directory
 webCreateDir           :: RealmId -> Path -> Handler Widget
 webCreateDir ri parent = do
-  (widget,enctype) <- generateFormPost addDirForm
-  return $ $(widgetFile "webPutDir")
+    (widget,enctype) <- generateFormPost addDirForm
+    return $ $(widgetFile "webPutDir")
+  where
+
+
+
 
 -- | The form.
 addDirForm :: Form FileName

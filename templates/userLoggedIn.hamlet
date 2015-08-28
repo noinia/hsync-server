@@ -1,6 +1,6 @@
 <div .navbar-right>
   <a .navbar-btn .btn .noLink
-      href=@{UserProfileR (view userName user)} title="User Profile">
+      href=@{UserProfileR (view userName user)} title="View user Profile">
     <span .glyphicon .glyphicon-user aria-hidden="true">
     #{view realName user}</a>
 

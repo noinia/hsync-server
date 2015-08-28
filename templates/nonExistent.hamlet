@@ -1,6 +1,6 @@
 <div .nonExistent>
   <h1 .fileKind>#{iconOf node} Deleted
-    <a .jumpToMostRecent href="#versions" data-slide-to="0" role="button">
+    <a .jumpToMostRecent href="#versions" title="Most recent version"
         data-slide-to="0" role="button">
       <span .glyphicon .glyphicon-chevron-up aria-hidden="true">
       <span .sr-only>Most recent version</a>

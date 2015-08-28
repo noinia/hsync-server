@@ -46,7 +46,8 @@
                 <span class="glyphicon glyphicon-search" aria-label="true"></a>
             <td .remove>
               $if exists (fileKindOf c)
-                <a href=@{WebDeleteR ri (fileKindOf c) (pathOf c)} title="Remove">
+                <a href=@{WebDeleteR ri (fileKindOf c) (pathOf c)} title="Remove"
+                   data-toggle="confirmation">
               $else
                 <a href="#">
               <span class="glyphicon glyphicon-remove" aria-label="true"></a>
