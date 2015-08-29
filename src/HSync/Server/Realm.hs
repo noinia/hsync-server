@@ -30,8 +30,9 @@ module HSync.Server.Realm( Realms(Realms), realmMap, nextRealmId
                          , OrdByName(..)
                          ) where
 
-import Data.Monoid
+import Data.Semigroup
 import Data.Default
+import Data.Maybe(fromMaybe)
 import Prelude
 import           HSync.Common.Types
 import HSync.Common.Realm( Realm(..), RealmTree, versions, accessPolicy
@@ -43,7 +44,8 @@ import HSync.Common.Realm( Realm(..), RealmTree, versions, accessPolicy
                          )
 import qualified HSync.Common.Realm as Realm
 
-
+import HSync.Common.DateTime(DateTime)
+import HSync.Common.Notification
 import HSync.Common.AccessPolicy
 import HSync.Common.FileVersion
 import Control.Monad.State.Class
@@ -51,7 +53,10 @@ import Control.Monad.Reader.Class
 import Data.Acid(Query, Update, makeAcidic, liftQuery)
 import Data.SafeCopy(base, deriveSafeCopy)
 import Control.Lens hiding (Indexable, children)
-import qualified Data.Map as M
+
+import qualified Data.Map  as M
+import qualified Data.Set  as S
+import qualified Data.List as L
 
 --------------------------------------------------------------------------------
 
@@ -79,24 +84,60 @@ createRealm rn lm pol = do
 queryRealms :: Query Realms Realms
 queryRealms = ask
 
-
+-- | Get the realm with the given realmId
 queryRealm   :: RealmId -> Query Realms (Maybe Realm)
 queryRealm i = M.lookup i . _realmMap <$> ask
 
+-- | Query a path in a realm. Returns the Tree rooted at that node.
+access      :: RealmId -> Path -> Query Realms (Maybe RealmTree)
+access ri p = (>>= Realm.access p) <$> queryRealm ri
 
+
+data SP a b = SP { fst' :: !a,  snd' :: !b}
+
+-- | Reports notifications in the (sub)realm as of the given date d (in
+-- increasing order of occurrance). If for a given path q, the object at q, has
+-- changed multiple times since d, only the most recent notification is returned.
+notificationsAsOf        :: RealmId -> Path -> DateTime
+                         -> Query Realms [Notification]
+notificationsAsOf ri p d = maybe mempty gather <$> access ri p
+  where
+    (Path q) +++ n = Path $ q ++ [n^.name]
+
+    gather n = L.sort . snd' $ gather' n (SP p mempty)
+
+    gather' n (SP q acc)
+      | n^.measurement.unLMT.to getMax < d = SP q acc  -- no recent changes in this tree
+      | otherwise                          = let z = SP (q +++ n) (insertMe q n acc) in
+          foldr gather' z (n^..children.to S.toList.traverse.unOrdByName)
+
+    -- If this node n has recently changed, add it to the accumulator
+    insertMe q n acc = if n^.nodeData.headVersionLens.lastModified.modificationTime < d
+                       then acc -- I did not change recently
+                       else toNotification n q:acc -- I've changed
+
+toNotification     :: RealmTree -> Path -> Notification
+toNotification n p = Notification $ Event (mkEventKind old new) new p
+  where
+    new = n^.nodeData.headVersionLens
+    old = n^?nodeData.versions.ix 1
+
+
+
+-- | Helper to modify a realm, returns true iff it applied the function
 modifyRealm     :: RealmId -> (Realm -> Realm) -> Update Realms Bool
 modifyRealm i f = liftQuery (queryRealm i) >>= \case
                     Nothing -> pure False
                     Just r  -> updateRealm i (f r) >> pure True
 
+
+-- | Given a realmId i and a Realm r, overwrite/insert r with id i
 updateRealm     :: RealmId -> Realm -> Update Realms ()
 updateRealm i r = modify (&realmMap %~ (M.insert i r))
-
-
 -- TODO: Return if we updated the thing, i.e. allow for checking
 
-access      :: RealmId -> Path -> Query Realms (Maybe RealmTree)
-access ri p = (>>= Realm.access p) <$> queryRealm ri
+
+
 
 
 checkAndUpdate                    :: RealmId
@@ -164,6 +205,7 @@ setAccessPolicy lm (AccessItem o rs) ri p =
 --------------------------------------------------------------------------------
 
 $(makeAcidic ''Realms [ 'queryRealms
+                      , 'notificationsAsOf
 
                       , 'createRealm
                       , 'updateRealm

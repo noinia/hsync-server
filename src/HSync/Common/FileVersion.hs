@@ -17,6 +17,7 @@ import Text.Blaze(ToMarkup(..))
 
 newtype LastModificationTime = LastModificationTime { _unLMT :: Max DateTime }
                                deriving (Show,Read,Eq,Ord,Semigroup)
+makeLenses ''LastModificationTime
 
 instance SafeCopy LastModificationTime where
   putCopy (LastModificationTime (Max u)) = contain $ safePut u
@@ -30,6 +31,9 @@ instance ToJSON LastModificationTime where
 
 instance FromJSON LastModificationTime where
   parseJSON = fmap (LastModificationTime . Max) . parseJSON
+
+
+
 
 --------------------------------------------------------------------------------
 

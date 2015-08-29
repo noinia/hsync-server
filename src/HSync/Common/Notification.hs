@@ -12,8 +12,7 @@ module HSync.Common.Notification(-- * Events
                                 -- , directoryAdded, directoryRemoved
 
                                 -- * Notifications
-                                , Notification(..)
-                                , event, changee, notificationTime
+                                , Notification(..), event
 
 
                                 , toLog
@@ -47,16 +46,11 @@ makePrisms ''EventKind
 
 
 
-mkEventKind         :: FileVersion -> FileVersion -> EventKind
-mkEventKind old new = case (old,new) of
-    (NonExistent,_) -> Added
-    (_,NonExistent) -> Deleted old
-    _               -> Updated old
-
-
-
-
-
+mkEventKind                :: Maybe FileVersion -> FileVersion -> EventKind
+mkEventKind Nothing    _   = Added
+mkEventKind (Just old) new = case new^.fileKind of
+                               NonExistent -> Deleted old
+                               _           -> Updated old
 
 data Event = Event { _eventKind        :: EventKind
                    , _newVersion       :: FileVersion
@@ -85,10 +79,7 @@ makeLenses ''Event
 
 --------------------------------------------------------------------------------
 
-data Notification = Notification { _event            :: Event
-                                 , _changee          :: ClientId
-                                 , _notificationTime :: DateTime
-                                 }
+newtype Notification = Notification { _event :: Event }
                   deriving (Read,Eq,Show)
 makeLenses ''Notification
 $(deriveJSON defaultOptions ''Notification)
@@ -96,11 +87,21 @@ $(deriveSafeCopy 0 'base ''Notification)
 
 -- | Notifications are ordered on timestamp
 instance Ord Notification where
-  (Notification _ c t) <= (Notification _ c' t') = (t,c) <= (t',c')
+  compare = compare `on` (^.event.newVersion.lastModified.modificationTime)
+
+toLog   :: Notification -> String
+toLog n = show n
+
+  -- let lm = n^.event.newVersion.lastModified
+  --         in
 
 
-toLog                          :: Notification -> String
-toLog (Notification evt ci ti) = intercalate ":" $ [show ti, show ci, show evt]
+  -- intercalate ":" [ show $ lm^.modificationTime
+  --                 , show $ lm^.modClient
+  --                 , show $ n^.eventKind
+  --                 ]
+
+  -- intercalate ":" $ [show ti, show ci, show evt]
 
 fromLog :: ByteString -> Maybe Notification
 fromLog = const Nothing --TODO: Implement this
