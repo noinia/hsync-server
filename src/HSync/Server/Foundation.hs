@@ -2,8 +2,7 @@
 {-# LANGUAGE LambdaCase #-}
 module HSync.Server.Foundation where
 
-import HSync.Server.Import.NoFoundation
-import HSync.Server.Types
+import Control.Concurrent.STM.TChan
 import Text.Hamlet          (hamletFile)
 import Text.Jasmine         (minifym)
 import Yesod.Auth.Message   (AuthMessage (InvalidLogin))
@@ -11,6 +10,8 @@ import Yesod.Default.Util   (addStaticContentExternal)
 import Yesod.Core.Types     (Logger)
 import qualified Yesod.Core.Unsafe as Unsafe
 import Control.Lens
+import HSync.Server.Import.NoFoundation
+import HSync.Server.Types
 import HSync.Server.User
 import HSync.Server.Realm
 import HSync.Server.LocalAuth
@@ -18,6 +19,8 @@ import HSync.Server.AcidState
 import HSync.Server.Authorization
 import HSync.Common.AcidState
 import HSync.Common.API
+
+
 
 import qualified Data.Map as M
 import qualified Data.Set as S
@@ -29,11 +32,12 @@ import qualified Data.Set as S
 -- starts running, such as database connections. Every handler will have
 -- access to the data present here.
 data App = App
-    { _appSettings    :: AppSettings
-    , _appStatic      :: Static -- ^ Settings for static file serving.
-    , _appAcids       :: Acids
-    , _appHttpManager :: Manager
-    , _appLogger      :: Logger
+    { _appSettings         :: AppSettings
+    , _appStatic           :: Static -- ^ Settings for static file serving.
+    , _appAcids            :: Acids
+    , _appHttpManager      :: Manager
+    , _appLogger           :: Logger
+    , _appNotificationChan :: TChan Notification
     }
 makeLenses ''App
 
@@ -274,7 +278,6 @@ instance YesodAuth App where
     authPlugins _ = [localAuth]
 
     authHttpManager = getHttpManager
-
 
 
 -- This instance is required to use forms. You can modify renderMessage to

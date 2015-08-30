@@ -5,8 +5,11 @@ import HSync.Common.API
 import HSync.Server.Import
 import HSync.Common.Header
 import HSync.Server.LocalAuth(validateUser)
+import HSync.Server.Notifications
 import HSync.Server.Handler.AcidUtils
 import Data.Maybe(fromJust)
+import Data.Aeson(encode)
+import qualified Data.Conduit.List as C
 
 --------------------------------------------------------------------------------
 
@@ -23,11 +26,22 @@ postAPILoginR = lift $ do
 
 --------------------------------------------------------------------------------
 
-getListenNowR :: RealmId -> Path -> APIHandler TypedContent
-getListenNowR ri p = return . toTypedContent $ ("Woei" :: Text)
+getListenNowR      :: RealmId -> Path -> APIHandler TypedContent
+getListenNowR ri p = lift $ respondWithSource (notificationsFor ri p)
 
-getListenR :: DateTime -> RealmId -> Path -> APIHandler TypedContent
-getListenR = undefined
+getListenR        :: DateTime -> RealmId -> Path -> APIHandler TypedContent
+getListenR d ri p = lift $ respondWithSource (notificationsAsOf d ri p)
+
+-- | Given a function to produce a source of a's (that can be encoded as JSON).
+-- Respond with this source
+respondWithSource          :: ToJSON a
+                           => Handler (Source Handler a) -> Handler TypedContent
+respondWithSource mkSource = do
+                               s <- mkSource
+                               respondSource typePlain
+                                 (s $= C.map encode $= awaitForever sendChunk')
+    where
+      sendChunk' x = sendChunk x >> sendFlush
 
 --------------------------------------------------------------------------------
 

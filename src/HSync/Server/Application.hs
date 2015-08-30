@@ -15,6 +15,7 @@ module HSync.Server.Application
 
 import Control.Lens
 import Control.Monad.Logger                 (liftLoc)
+import Control.Concurrent(forkIO)
 import HSync.Server.Import
 import Language.Haskell.TH.Syntax           (qLocation)
 import Network.Wai.Handler.Warp             (Settings, defaultSettings,
@@ -29,6 +30,7 @@ import System.Log.FastLogger                (defaultBufSize, newStdoutLoggerSet,
                                              toLogStr)
 
 import HSync.Server.AcidState
+import HSync.Server.Notifications(printNotifications)
 
 -- Import all relevant handler modules here.
 -- Don't forget to add new modules to your cabal file!
@@ -65,6 +67,7 @@ makeFoundation _appSettings _appAcids = do
     _appStatic <-
         (if _appSettings^.mutableStatic then staticDevel else static)
         (_appSettings^.staticDir)
+    _appNotificationChan <- newBroadcastTChanIO
 
     -- Return the foundation
     return $ App {..}
@@ -108,6 +111,7 @@ getApplicationDev       :: Acids -> IO (Settings, Application)
 getApplicationDev acids = do
     settings <- getAppSettings
     foundation <- makeFoundation settings acids
+    _ <- forkIO (printNotifications foundation)
     wsettings <- getDevSettings $ warpSettings foundation
     app <- makeApplication foundation
     return (wsettings, app)

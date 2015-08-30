@@ -13,6 +13,7 @@ module HSync.Common.Notification(-- * Events
 
                                 -- * Notifications
                                 , Notification(..), event
+                                , notification
 
 
                                 , toLog
@@ -54,6 +55,7 @@ mkEventKind (Just old) new = case new^.fileKind of
 
 data Event = Event { _eventKind        :: EventKind
                    , _newVersion       :: FileVersion
+                   , _affectedRealm    :: RealmId
                    , _affectedPath     :: Path
                    }
              deriving (Show,Read,Eq)
@@ -85,6 +87,13 @@ makeLenses ''Notification
 $(deriveJSON defaultOptions ''Notification)
 $(deriveSafeCopy 0 'base ''Notification)
 
+
+-- | smart constructor to construct a notification
+notification              :: Maybe FileVersion -> FileVersion -> RealmId -> Path
+                          -> Notification
+notification old new ri p = Notification $ Event (mkEventKind old new) new ri p
+
+
 -- | Notifications are ordered on timestamp
 instance Ord Notification where
   compare = compare `on` (^.event.newVersion.lastModified.modificationTime)
@@ -106,8 +115,13 @@ toLog n = show n
 fromLog :: ByteString -> Maybe Notification
 fromLog = const Nothing --TODO: Implement this
 
-matchesNotification       :: Path -> Notification -> Bool
-p `matchesNotification` n = (n^.event.affectedPath) `isSubPathOf` p
+
+-- | Weather or not the notification is about something from the subtree with
+-- path p in realm ri .
+matchesNotification        :: RealmId -> Path -> Notification -> Bool
+matchesNotification ri p n =  n^.event.affectedRealm == ri
+                           && p `isSubPathOf` (n^.event.affectedPath)
+
 
 
 -- evtS = "FileAdded (Path \"\" [])"

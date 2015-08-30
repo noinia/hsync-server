@@ -20,6 +20,7 @@ library
                      HSync.Server.Import
                      HSync.Server.Import.NoFoundation
                      HSync.Server.LocalAuth
+                     HSync.Server.Notifications
                      HSync.Server.Settings
                      HSync.Server.Settings.StaticFiles
                      HSync.Server.User
@@ -107,6 +108,7 @@ library
                  , wai-logger                    >= 2.2        && < 2.3
                  , file-embed
 
+                 , stm                           >= 2.4
                  , mtl                           >= 2.1
                  , transformers                  >= 0.4
                  , lens                          >= 4

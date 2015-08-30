@@ -10,7 +10,9 @@ module HSync.Server.Realm( Realms(Realms), realmMap, nextRealmId
                          , AddFile(..)
                          , AddDirectory(..)
                          , Delete(..)
+                         , NotificationsAsOf(..)
 
+                         , toNotification
 
                          , SetAccessPolicy(..)
 
@@ -98,9 +100,9 @@ data SP a b = SP { fst' :: !a,  snd' :: !b}
 -- | Reports notifications in the (sub)realm as of the given date d (in
 -- increasing order of occurrance). If for a given path q, the object at q, has
 -- changed multiple times since d, only the most recent notification is returned.
-notificationsAsOf        :: RealmId -> Path -> DateTime
+notificationsAsOf        :: DateTime -> RealmId -> Path
                          -> Query Realms [Notification]
-notificationsAsOf ri p d = maybe mempty gather <$> access ri p
+notificationsAsOf d ri p = maybe mempty gather <$> access ri p
   where
     (Path q) +++ n = Path $ q ++ [n^.name]
 
@@ -114,14 +116,13 @@ notificationsAsOf ri p d = maybe mempty gather <$> access ri p
     -- If this node n has recently changed, add it to the accumulator
     insertMe q n acc = if n^.nodeData.headVersionLens.lastModified.modificationTime < d
                        then acc -- I did not change recently
-                       else toNotification n q:acc -- I've changed
+                       else toNotification n ri q:acc -- I've changed
 
-toNotification     :: RealmTree -> Path -> Notification
-toNotification n p = Notification $ Event (mkEventKind old new) new p
+toNotification        :: RealmTree -> RealmId -> Path -> Notification
+toNotification n ri p = notification old new ri p
   where
     new = n^.nodeData.headVersionLens
     old = n^?nodeData.versions.ix 1
-
 
 
 -- | Helper to modify a realm, returns true iff it applied the function
@@ -147,16 +148,21 @@ checkAndUpdate                    :: RealmId
                                               -- operation is not executed, and
                                               -- we return a Nothing
                                   -> (Realm -> Realm)
-                                  -> Update Realms (Either ErrorMessage FileVersion)
+                                  -> Update Realms (Either ErrorMessage Notification)
 checkAndUpdate ri p currentKind f = do
-    fk <- maybe NonExistent (^.nodeData.headVersionLens.fileKind)
-          <$> liftQuery (access ri p)
+    old <- fmap (^.nodeData.headVersionLens) <$> liftQuery (access ri p)
+    let fk = maybe NonExistent (^.fileKind) old
     if fk /= currentKind then return $ Left "Wrong filekind"
       else do modify (&realmMap %~ (M.adjust f ri))
-              g <$> liftQuery (access ri p)
+              (toE . fmap (mkNotif old . getFV)) <$> liftQuery (access ri p)
+
   where
-    g   = toE . fmap (^.nodeData.headVersionLens)
-    toE = maybe (Left "error?") Right
+    getFV = (^.nodeData.headVersionLens)
+    toE   = maybe (Left "error?") Right
+
+    mkNotif old new = notification old new ri p
+
+
 
 
 
@@ -171,23 +177,21 @@ addFile               :: RealmId
                       -> LastModified -- ^ the new modification information
                       -> Bool -- ^ if we committed the data already or not
                       -> Signature -- ^ and the file's signature
-                      -> Update Realms (Either ErrorMessage FileVersion)
+                      -> Update Realms (Either ErrorMessage Notification)
 addFile ri p currentKind m b s = checkAndUpdate ri p currentKind
                                                    (Realm.addFile p m b s)
 
 -- | Add A Directory to the given realm
 -- pre: Realm exists
-addDirectory        :: RealmId -> Path
-                    -> FileKind
-                    -> LastModified -> Update Realms (Either ErrorMessage FileVersion)
+addDirectory                    :: RealmId -> Path -> FileKind -> LastModified
+                                -> Update Realms (Either ErrorMessage Notification)
 addDirectory ri p currentKind m = checkAndUpdate ri p currentKind
                                                  (Realm.addDirectory p m)
 
 -- | Delete an item (either a file or directory) given by the path from the given realm
 -- pre: Realm exists
-delete        :: RealmId -> Path
-                 -> FileKind
-                 -> LastModified -> Update Realms (Either ErrorMessage FileVersion)
+delete                    :: RealmId -> Path -> FileKind -> LastModified
+                          -> Update Realms (Either ErrorMessage Notification)
 delete ri p currentKind m = checkAndUpdate ri p currentKind
                                            (Realm.delete p m)
 

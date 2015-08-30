@@ -14,6 +14,7 @@ import Yesod.Default.Config2 as Import
 
 
 import HSync.Common.Types                    as Import
+import HSync.Common.Notification             as Import
 import HSync.Common.FileVersion              as Import
 import HSync.Common.AcidState                as Import
 import HSync.Common.AccessPolicy             as Import
