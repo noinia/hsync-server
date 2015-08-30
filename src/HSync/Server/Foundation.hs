@@ -21,7 +21,7 @@ import HSync.Common.AcidState
 import HSync.Common.API
 
 
-
+import qualified Data.Bimap as BM
 import qualified Data.Map as M
 import qualified Data.Set as S
 
@@ -98,6 +98,7 @@ instance Yesod App where
 
     isAuthorized (UserProfileR un) _    = authorizedIfSelf un
     isAuthorized (ListUserRealmsR un) _ = authorizedIfSelf un
+    isAuthorized (AddClientR un)      _ = authorizedIfSelf un
 
     isAuthorized (APIR APILoginR)               _ = return Authorized
 
@@ -108,9 +109,12 @@ instance Yesod App where
     isAuthorized (APIR (FileR            ri _ p)) _ = requireAll [Read] Nothing ri p
     isAuthorized (APIR (DownloadCurrentR ri   p)) _ = requireAll [Read] Nothing ri p
 
-    isAuthorized (APIR (CreateDirR _ ri   p)) _ = requireAll [Read, Write] Nothing ri p
-    isAuthorized (APIR (StoreFileR _ ri _ p)) _ = requireAll [Read, Write] Nothing ri p
-    isAuthorized (APIR (DeleteR    _ ri _ p)) _ = requireAll [Read, Write] Nothing ri p
+    isAuthorized (APIR (CreateDirR cn  ri   p)) _ = requireAllAndKnownClient
+                                                      cn [Read, Write] ri p
+    isAuthorized (APIR (StoreFileR cn  ri _ p)) _ = requireAllAndKnownClient
+                                                      cn [Read, Write] ri p
+    isAuthorized (APIR (DeleteR    cn  ri _ p)) _ = requireAllAndKnownClient
+                                                      cn [Read, Write] ri p
 
 
     isAuthorized (WebCreateDirR   ri   p) _ = requireAll [Read, Write] Nothing ri p
@@ -175,6 +179,15 @@ hasRights reqs mpw ri p = f <$> gatherRights mpw ri p
   where
     f rs = S.fromList reqs `S.isSubsetOf` rs
 
+
+requireAllAndKnownClient             :: ClientName -> [AccessRight] -> RealmId -> Path
+                                     -> Handler AuthResult
+requireAllAndKnownClient c reqs ri p = do
+                                         b <- requireKnownClient c
+                                         if b then requireAll reqs Nothing ri p
+                                              else return $ Unauthorized "Unknown Client"
+
+
 requireAll              :: [AccessRight] -> Maybe HashedPassword
                         -> RealmId -> Path -> Handler AuthResult
 requireAll reqs mpw ri p = f <$> gatherRights mpw ri p
@@ -182,6 +195,9 @@ requireAll reqs mpw ri p = f <$> gatherRights mpw ri p
     f rs
       | (S.fromList reqs) `S.isSubsetOf` rs = Authorized
       | otherwise                           = AuthenticationRequired
+
+requireKnownClient    :: ClientName -> Handler Bool
+requireKnownClient cn = maybe False (^.clients.to (BM.memberR cn)) <$> maybeAuthId
 
 
 gatherRights           :: Maybe HashedPassword -> RealmId -> Path
