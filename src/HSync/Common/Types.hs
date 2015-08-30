@@ -56,19 +56,22 @@ instance ToMarkup Path where
 
 
 newtype ClientId = ClientId { _unClientId :: Integer }
-                   deriving (Show,Read,Eq,Ord,ToMarkup,Typeable,PathPiece,ToJSON,FromJSON)
+                   deriving ( Show,Read,Eq,Ord,ToMarkup,Enum
+                            , Typeable,PathPiece,ToJSON,FromJSON)
 $(deriveSafeCopy 0 'base ''ClientId)
 makeLenses ''ClientId
 
-newtype ClientName = ClientName Text
-                      deriving (Show,Read,Eq,Ord,ToMarkup,Typeable,ToJSON,FromJSON)
+newtype ClientName = ClientName { _unClientName :: Text }
+                      deriving (Show,Read,Eq,Ord,ToMarkup,Typeable,ToJSON,FromJSON,PathPiece)
 $(deriveSafeCopy 0 'base ''ClientName)
+makeLenses ''ClientName
 
 --------------------------------------------------------------------------------
 
 
 newtype RealmId = RealmId Integer
-                deriving (Show,Read,Eq,Ord,Typeable,ToMarkup,PathPiece,FromJSON,ToJSON)
+                deriving ( Show,Read,Eq,Ord,Enum
+                         , Typeable,ToMarkup,PathPiece,FromJSON,ToJSON)
 $(deriveSafeCopy 0 'base ''RealmId)
 
 type RealmName = FileName
@@ -81,7 +84,8 @@ type RealmName = FileName
 
 
 newtype UserId = UserId { _unUserId :: Integer }
-                 deriving (Show,Read,Eq,Ord,ToMarkup,Typeable,FromJSON,ToJSON,PathPiece)
+                 deriving ( Show,Read,Eq,Ord,Enum
+                          , ToMarkup,Typeable,FromJSON,ToJSON,PathPiece)
 $(deriveSafeCopy 0 'base ''UserId)
 makeLenses ''UserId
 

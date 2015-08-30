@@ -2,6 +2,7 @@
 module HSync.Server.Handler.AcidUtils where
 
 import Control.Lens
+import qualified Data.Bimap as BM
 import HSync.Server.Import
 import HSync.Server.Notifications
 import Data.Acid(UpdateEvent, EventResult, EventState)
@@ -52,5 +53,15 @@ deleteFileOrDir ci ri p currentKind = getLastModified ci >>= \case
     Right lm -> updateAcidAndLog $ Delete ri p currentKind lm
 
 
+withClientId      :: ClientName -> (ClientId -> Handler (Either ErrorMessage a))
+                  -> Handler (Either ErrorMessage a)
+withClientId cn h = queryClientId cn >>= \case
+                      Nothing -> pure $ Left "Error: Unknown Client"
+                      Just ci -> h ci
+
+
 queryRealmName :: RealmId -> Handler (Maybe RealmName)
 queryRealmName = fmap (fmap (^.realmName)) . queryAcid . QueryRealm
+
+queryClientId    :: ClientName -> Handler (Maybe ClientId)
+queryClientId cn = ((^.clients.to (BM.lookupR cn)) =<<) <$> maybeAuthId

@@ -38,9 +38,6 @@ webCreateDir           :: RealmId -> Path -> Handler Widget
 webCreateDir ri parent = do
     (widget,enctype) <- generateFormPost addDirForm
     return $ $(widgetFile "webPutDir")
-  where
-
-
 
 
 -- | The form.

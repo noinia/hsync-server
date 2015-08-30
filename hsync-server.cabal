@@ -2,6 +2,12 @@ name:              hsync-server
 version:           0.2.0.0
 cabal-version:     >= 1.8
 build-type:        Simple
+homepage:          https://fstaals.net/software/hsync
+license:           BSD3
+license-file:      LICENSE
+author:            Frank Staals
+maintainer:        frank@fstaals.net
+category:          Network
 
 Flag dev
     Description:   Turn on development settings, like auto-reload templates.
@@ -37,20 +43,6 @@ library
                      HSync.Server.Handler.Realm
                      HSync.Server.Handler.User
 
-                     HSync.Common.API
-                     HSync.Common.AcidState
-                     HSync.Common.AccessPolicy
-                     HSync.Common.DateTime
-                     HSync.Common.FileVersion
-                     HSync.Common.Header
-                     HSync.Common.Notification
-                     HSync.Common.Realm
-                     HSync.Common.StorageTree
-                     HSync.Common.Types
-                     HSync.Common.User
-                     HSync.Common.Util
-                     HSync.Common.OrphanInstances
-                     -- HSync.Common.Zip
 
 
     if flag(dev) || flag(library-only)
@@ -74,6 +66,7 @@ library
                 DeriveDataTypeable
                 AutoDeriveTypeable
                 ViewPatterns
+                LambdaCase
                 TupleSections
                 RecordWildCards
 
@@ -125,6 +118,7 @@ library
                  , cereal
                  , filepath                      >= 1.4.0.0
                  , random                        >= 1.1
+                 , bimap                         >= 0.3
 
                  , safe
                  , unordered-containers

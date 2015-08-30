@@ -54,7 +54,7 @@ getCurrentRealmR ri p = do
 
 getDownloadR                  :: RealmId -> FileKind -> Path -> APIHandler TypedContent
 getDownloadR _  NonExistent _ = notFound
-getDownloadR ri Directory   p = typedText_ ("Directory" :: Text)
+getDownloadR _  Directory   _ = typedText_ ("Directory" :: Text)
 getDownloadR ri (File s)    p = getFileR ri s p
 
 
@@ -73,22 +73,25 @@ getDownloadCurrentR ri p = do
 
 --------------------------------------------------------------------------------
 
-postCreateDirR         :: ClientId -> RealmId -> Path -> APIHandler Value
-postCreateDirR ci ri p = toJSON <$> lift (createDirectory ci ri p NonExistent)
+postCreateDirR         :: ClientName -> RealmId -> Path -> APIHandler Value
+postCreateDirR cn ri p = toJSON <$> lift (withClientId cn $ \ci ->
+                                           createDirectory ci ri p NonExistent)
 
 
-postStoreFileR             :: ClientId -> RealmId -> Signature -> Path
+postStoreFileR             :: ClientName -> RealmId -> Signature -> Path
                            -> APIHandler Value
-postStoreFileR ci ri sig p = toJSON <$> lift (addFile ci ri p (File sig) rawRequestBody)
+postStoreFileR cn ri sig p = toJSON <$> lift (withClientId cn $ \ci ->
+                                          addFile ci ri p (File sig) rawRequestBody)
+
 
 --------------------------------------------------------------------------------
 
 
-deleteDeleteR                     :: ClientId -> RealmId -> FileKind -> Path
+deleteDeleteR                     :: ClientName -> RealmId -> FileKind -> Path
                                   -> APIHandler Value
 deleteDeleteR _  _  NonExistent _ = reportError_ "Nothing to delete"
-deleteDeleteR ci ri fk          p = toJSON <$> lift (deleteFileOrDir ci ri p fk)
-
+deleteDeleteR cn ri fk          p = toJSON <$> lift (withClientId cn $ \ci ->
+                                                 deleteFileOrDir ci ri p fk)
 
 reportError :: Text -> Either ErrorMessage FileVersion
 reportError = Left

@@ -20,12 +20,12 @@
 /accessPolicy/item/#AccessItem/#RealmId/*Path                                                ModifyAccessItemR      GET POST
 
 /accessPolicy/add/item/start/#RealmId/*Path                                                  AddAccessItemStartR        POST
-/accessPolicy/add/item/save/#AccessOptionType/#RealmId/*Path                                   AddAccessItemR             POST
+/accessPolicy/add/item/save/#AccessOptionType/#RealmId/*Path                                   AddAccessItemR           POST
 
 
 /user/profile/#UserName                                                                      UserProfileR           GET
 /user/realms/#UserName                                                                       ListUserRealmsR        GET
-
+/user/client/add/#UserName                                                                   AddClientR                 POST
 
 /admin/users                                                                                 ListUsersR             GET
 /admin/realms                                                                                ListRealmsR            GET

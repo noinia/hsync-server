@@ -30,8 +30,10 @@
         <td .lbl>#{ci}
         <td .value>#{cn}
 
-  <a .btn .btn-success
-     href="#" role="button">Add Client</a>
+
+  <form .addClient method=post action=@{AddClientR un} enctype=#{addClientEncType}>
+    ^{addClientWidget}
+    <button type="submit" .btn .btn-success>Add Client
 
   <h2>Realms
 

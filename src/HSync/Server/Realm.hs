@@ -34,7 +34,6 @@ module HSync.Server.Realm( Realms(Realms), realmMap, nextRealmId
 
 import Data.Semigroup
 import Data.Default
-import Data.Maybe(fromMaybe)
 import Prelude
 import           HSync.Common.Types
 import HSync.Common.Realm( Realm(..), RealmTree, versions, accessPolicy
@@ -77,9 +76,9 @@ instance Default Realms where
 createRealm           :: RealmName -> LastModified -> AccessPolicy
                       -> Update Realms (RealmId,Realm,Realms)
 createRealm rn lm pol = do
-                       Realms m ni@(RealmId i) <- get
+                       Realms m ni <- get
                        let r  = Realm $ newRealmTree rn lm pol
-                       let rs = Realms (M.insert ni r m) (RealmId $ i+1)
+                       let rs = Realms (M.insert ni r m) (succ ni)
                        put rs
                        return (ni,r,rs)
 
