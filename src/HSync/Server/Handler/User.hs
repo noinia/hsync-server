@@ -13,7 +13,7 @@ import qualified Data.Bimap as BM
 
 getListUsersR :: Handler Html
 getListUsersR = do
-  (UserIndex idx n _) <- queryAcid QueryUserIndex
+  (UserIndex idx _ _) <- queryAcid QueryUserIndex
   let users = I.toList idx
   defaultLayout $(widgetFile "listUsers")
 
