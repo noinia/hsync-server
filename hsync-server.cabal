@@ -1,6 +1,6 @@
 name:              hsync-server
 version:           0.2.0.0
-cabal-version:     >= 1.8
+cabal-version:     >= 1.10
 build-type:        Simple
 homepage:          https://fstaals.net/software/hsync
 license:           BSD3
