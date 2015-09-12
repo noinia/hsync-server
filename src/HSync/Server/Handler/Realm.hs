@@ -7,6 +7,7 @@ import HSync.Server.Import
 import HSync.Server.Handler.ManualUpload(webCreateDir, webStoreFile)
 import HSync.Server.Handler.AcidUtils(queryRealmName)
 
+import qualified Data.Bimap as BM
 import qualified Data.Map as M
 import qualified Data.List.NonEmpty as NE
 import qualified Data.Text as T
@@ -84,7 +85,11 @@ getLastModifiedWidget v = do
     let clientId     = v^.lastModified.modClient
         modifiedTime = v^.lastModified.modificationTime
         userName'    = user^._Just.userName.unUserName
-        clientName   = webClientName -- fromMaybe webClientName $ user^._Just.clients.at clientId
+        clientName   = if clientId == webClientId
+                          then webClientName
+                          else webClientName -- TODO!!!!
+                         -- user^?_Just.clients.to (BM.lookup clientId)
+          -- webClientName -- fromMaybe webClientName $ user^._Just.clients.at clientId
     return $(widgetFile "lastModified")
 
 

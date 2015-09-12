@@ -51,54 +51,58 @@ library
     else
         ghc-options:   -Wall -fwarn-tabs -O2
 
-    extensions: TemplateHaskell
-                QuasiQuotes
-                OverloadedStrings
-                NoImplicitPrelude
-                CPP
-                MultiParamTypeClasses
-                TypeFamilies
-                GADTs
-                GeneralizedNewtypeDeriving
-                FlexibleContexts
-                EmptyDataDecls
-                NoMonomorphismRestriction
-                DeriveDataTypeable
-                AutoDeriveTypeable
-                ViewPatterns
-                LambdaCase
-                TupleSections
-                RecordWildCards
+    Default-language:    Haskell2010
+
+    default-extensions: TemplateHaskell
+                        QuasiQuotes
+                        OverloadedStrings
+                        NoImplicitPrelude
+                        CPP
+                        MultiParamTypeClasses
+                        TypeFamilies
+                        GADTs
+                        GeneralizedNewtypeDeriving
+                        FlexibleContexts
+                        EmptyDataDecls
+                        NoMonomorphismRestriction
+                        DeriveDataTypeable
+                        AutoDeriveTypeable
+                        ViewPatterns
+                        LambdaCase
+                        TupleSections
+                        RecordWildCards
 
     build-depends: base                          >= 4          && < 5
-                 , yesod                         >= 1.4.1      && < 1.5
-                 , yesod-core                    >= 1.4.6      && < 1.5
-                 , yesod-auth                    >= 1.4.0      && < 1.5
-                 , yesod-static                  >= 1.4.0.3    && < 1.5
-                 , yesod-form                    >= 1.4.0      && < 1.5
+                 , hsync-common                  >= 0.2.0.0    && < 0.3
+
+                 , yesod                         >= 1.4.1
+                 , yesod-core                    >= 1.4.6
+                 , yesod-auth                    >= 1.4.0
+                 , yesod-static                  >= 1.4.0.3
+                 , yesod-form                    >= 1.4.0
                  , classy-prelude                >= 0.10.2
                  , classy-prelude-conduit        >= 0.10.2
                  , classy-prelude-yesod          >= 0.10.2
-                 , bytestring                    >= 0.9        && < 0.11
-                 , text                          >= 0.11       && < 2.0
+                 , bytestring                    >= 0.9
+                 , text                          >= 0.11
                  -- , persistent                    >= 2.0        && < 2.2
                  -- , persistent-sqlite             >= 2.1.1      && < 2.2
                  -- , persistent-template           >= 2.0        && < 2.2
                  , template-haskell
-                 , shakespeare                   >= 2.0        && < 2.1
-                 , hjsmin                        >= 0.1        && < 0.2
-                 , monad-control                 >= 0.3        && < 1.1
-                 , wai-extra                     >= 3.0        && < 3.1
-                 , yaml                          >= 0.8        && < 0.9
-                 , http-conduit                  >= 2.1        && < 2.2
-                 , directory                     >= 1.1        && < 1.3
-                 , warp                          >= 3.0        && < 3.1
+                 , shakespeare                   >= 2.0
+                 , hjsmin                        >= 0.1
+                 , monad-control                 >= 0.3
+                 , wai-extra                     >= 3.0
+                 , yaml                          >= 0.8
+                 , http-conduit                  >= 2.1
+                 , directory                     >= 1.1
+                 , warp                          >= 3.0
                  , data-default
-                 , aeson                         >= 0.6        && < 0.9
-                 , conduit                       >= 1.0        && < 2.0
-                 , monad-logger                  >= 0.3        && < 0.4
-                 , fast-logger                   >= 2.2        && < 2.4
-                 , wai-logger                    >= 2.2        && < 2.3
+                 , aeson                         >= 0.6
+                 , conduit                       >= 1.0
+                 , monad-logger                  >= 0.3
+                 , fast-logger                   >= 2.2
+                 , wai-logger                    >= 2.2
                  , file-embed
 
                  , stm                           >= 2.4
@@ -107,7 +111,7 @@ library
                  , lens                          >= 4
                  , acid-state                    >= 0.12
                  , ixset                         >= 1.0.6
-                 , safecopy
+                 , safecopy                      >= 0.8.2
                  , semigroups                    >= 0.15
                  , lifted-base                   >= 0.2
                  , blaze-markup                  >= 0.7
@@ -123,10 +127,10 @@ library
                  , safe
                  , unordered-containers
                  , containers
-                 , vector                        >= 0.10    && < 0.11
+                 , vector                        >= 0.10
                  , time
-                 , http-types                    >= 0.8     && < 0.9
-                 , case-insensitive              >= 1.2     && < 1.3
+                 , http-types                    >= 0.8
+                 , case-insensitive              >= 1.2
                  -- , zip-conduit                   >= 0.2
 
 
@@ -146,21 +150,21 @@ test-suite test
     hs-source-dirs:    test
     ghc-options:       -Wall
 
-    extensions: TemplateHaskell
-                QuasiQuotes
-                OverloadedStrings
-                NoImplicitPrelude
-                CPP
-                MultiParamTypeClasses
-                TypeFamilies
-                GADTs
-                GeneralizedNewtypeDeriving
-                FlexibleContexts
-                EmptyDataDecls
-                NoMonomorphismRestriction
-                DeriveDataTypeable
-                ViewPatterns
-                TupleSections
+    default-extensions: TemplateHaskell
+                        QuasiQuotes
+                        OverloadedStrings
+                        NoImplicitPrelude
+                        CPP
+                        MultiParamTypeClasses
+                        TypeFamilies
+                        GADTs
+                        GeneralizedNewtypeDeriving
+                        FlexibleContexts
+                        EmptyDataDecls
+                        NoMonomorphismRestriction
+                        DeriveDataTypeable
+                        ViewPatterns
+                        TupleSections
 
     build-depends: base
                  , hsync-server
