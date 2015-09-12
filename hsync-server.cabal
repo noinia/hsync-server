@@ -111,7 +111,7 @@ library
                  , lens                          >= 4
                  , acid-state                    >= 0.12
                  , ixset                         >= 1.0.6
-                 , safecopy                      >= 0.8.2
+                 , safecopy                      >= 0.8.5
                  , semigroups                    >= 0.15
                  , lifted-base                   >= 0.2
                  , blaze-markup                  >= 0.7
