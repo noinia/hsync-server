@@ -51,7 +51,7 @@ library
     else
         ghc-options:   -Wall -fwarn-tabs -O2
 
-    Default-language:    Haskell2010
+    Default-language: Haskell2010
 
     default-extensions: TemplateHaskell
                         QuasiQuotes
@@ -141,6 +141,7 @@ executable         hsync-server
     main-is:           main.hs
     hs-source-dirs:    app
     build-depends:     base, hsync-server
+    Default-language: Haskell2010
 
     ghc-options:       -threaded -O2 -rtsopts -with-rtsopts=-N
 
@@ -149,6 +150,8 @@ test-suite test
     main-is:           Spec.hs
     hs-source-dirs:    test
     ghc-options:       -Wall
+
+    Default-language: Haskell2010
 
     default-extensions: TemplateHaskell
                         QuasiQuotes
@@ -168,7 +171,7 @@ test-suite test
 
     build-depends: base
                  , hsync-server
-                 , yesod-test >= 1.4.3 && < 1.5
+                 , yesod-test >= 1.4.3
                  , yesod-core
                  , yesod
                  , persistent
