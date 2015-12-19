@@ -73,7 +73,7 @@ instance Default Realms where
 
 
 
-createRealm           :: RealmName -> LastModified -> AccessPolicy
+createRealm           :: RealmName -> LastModified ClientId -> AccessPolicy
                       -> Update Realms (RealmId,Realm,Realms)
 createRealm rn lm pol = do
                        Realms m ni <- get
@@ -100,7 +100,7 @@ data SP a b = SP { fst' :: !a,  snd' :: !b}
 -- increasing order of occurrance). If for a given path q, the object at q, has
 -- changed multiple times since d, only the most recent notification is returned.
 notificationsAsOf        :: DateTime -> RealmId -> Path
-                         -> Query Realms [Notification]
+                         -> Query Realms [Notification ClientId]
 notificationsAsOf d ri p = maybe mempty gather <$> access ri p
   where
     (Path q) +++ n = Path $ q ++ [n^.name]
@@ -117,7 +117,7 @@ notificationsAsOf d ri p = maybe mempty gather <$> access ri p
                        then acc -- I did not change recently
                        else toNotification n ri q:acc -- I've changed
 
-toNotification        :: RealmTree -> RealmId -> Path -> Notification
+toNotification        :: RealmTree -> RealmId -> Path -> Notification ClientId
 toNotification n ri p = notification old new ri p
   where
     new = n^.nodeData.headVersionLens
@@ -147,7 +147,8 @@ checkAndUpdate                    :: RealmId
                                               -- operation is not executed, and
                                               -- we return a Nothing
                                   -> (Realm -> Realm)
-                                  -> Update Realms (Either ErrorMessage Notification)
+                                  -> Update Realms (Either ErrorMessage
+                                                           (Notification ClientId))
 checkAndUpdate ri p currentKind f = do
     old <- fmap (^.nodeData.headVersionLens) <$> liftQuery (access ri p)
     let fk = maybe NonExistent (^.fileKind) old
@@ -173,24 +174,25 @@ addFile               :: RealmId
                       -> Path
                       -> FileKind -- ^ the current filekind. If the file kind does not match
                                   -- the operation is not executed, and we return a Nothing
-                      -> LastModified -- ^ the new modification information
+                      -> LastModified ClientId -- ^ the new modification information
                       -> Bool -- ^ if we committed the data already or not
                       -> Signature -- ^ and the file's signature
-                      -> Update Realms (Either ErrorMessage Notification)
+                      -> Update Realms (Either ErrorMessage (Notification ClientId))
 addFile ri p currentKind m b s = checkAndUpdate ri p currentKind
                                                    (Realm.addFile p m b s)
 
 -- | Add A Directory to the given realm
 -- pre: Realm exists
-addDirectory                    :: RealmId -> Path -> FileKind -> LastModified
-                                -> Update Realms (Either ErrorMessage Notification)
+addDirectory                    :: RealmId -> Path -> FileKind -> LastModified ClientId
+                                -> Update Realms (Either ErrorMessage
+                                                         (Notification ClientId))
 addDirectory ri p currentKind m = checkAndUpdate ri p currentKind
                                                  (Realm.addDirectory p m)
 
 -- | Delete an item (either a file or directory) given by the path from the given realm
 -- pre: Realm exists
-delete                    :: RealmId -> Path -> FileKind -> LastModified
-                          -> Update Realms (Either ErrorMessage Notification)
+delete                    :: RealmId -> Path -> FileKind -> LastModified ClientId
+                          -> Update Realms (Either ErrorMessage (Notification ClientId))
 delete ri p currentKind m = checkAndUpdate ri p currentKind
                                            (Realm.delete p m)
 
@@ -198,7 +200,8 @@ delete ri p currentKind m = checkAndUpdate ri p currentKind
 --------------------------------------------------------------------------------
 -- * Access Policy stuff
 
-setAccessPolicy                           :: LastModified -> AccessItem -> RealmId -> Path
+setAccessPolicy                           :: LastModified ClientId
+                                          -> AccessItem -> RealmId -> Path
                                           -> Update Realms Bool
 setAccessPolicy lm (AccessItem o rs) ri p =
     modifyRealm ri (Realm.updateAccessPolicyOf p f lm)

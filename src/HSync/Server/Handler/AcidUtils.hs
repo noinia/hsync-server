@@ -12,7 +12,7 @@ import Data.Acid(UpdateEvent, EventResult, EventState)
 
 addFile                        :: ClientId -> RealmId -> Path -> FileKind
                                -> Source Handler ByteString
-                               -> Handler (Either ErrorMessage Notification)
+                               -> Handler (Either ErrorMessage PublicNotification)
 addFile ci ri p currentKind s = do
     (_,sig) <- storeFile ri p s
     elm     <- getLastModified ci
@@ -22,16 +22,16 @@ addFile ci ri p currentKind s = do
 
 
 updateAcidAndLog       :: ( UpdateEvent event
-                          , EventResult event ~ Either l Notification
+                          , EventResult event ~ Either l (Notification ClientId)
                           , HasAcidState Handler (EventState event)
                           )
-                       => event -> Handler (Either l Notification)
+                       => event -> Handler (Either l PublicNotification)
 updateAcidAndLog event = do
                        n <- updateAcid event
-                       either (pure . const ()) logNotification n
-                       pure n
+                       mapM_ logNotification n
+                       mapM  withClientName n
 
-getLastModified    :: ClientId -> Handler (Either ErrorMessage LastModified)
+getLastModified    :: ClientId -> Handler (Either ErrorMessage (LastModified ClientId))
 getLastModified ci = do
     dt  <- currentTime
     mui <- (fmap (^.userId)) <$> maybeAuthId
@@ -40,14 +40,14 @@ getLastModified ci = do
       Nothing -> Left "Error: We need a UserId to create a LastModified"
 
 createDirectory                     :: ClientId -> RealmId -> Path -> FileKind
-                                    -> Handler (Either ErrorMessage Notification)
+                                    -> Handler (Either ErrorMessage PublicNotification)
 createDirectory ci ri p currentKind = getLastModified ci >>= \case
     Left err -> return $ Left err
     Right lm -> updateAcidAndLog $ AddDirectory ri p currentKind lm
 
 
 deleteFileOrDir                     :: ClientId -> RealmId -> Path -> FileKind
-                                    -> Handler (Either ErrorMessage Notification)
+                                    -> Handler (Either ErrorMessage PublicNotification)
 deleteFileOrDir ci ri p currentKind = getLastModified ci >>= \case
     Left err -> return $ Left err
     Right lm -> updateAcidAndLog $ Delete ri p currentKind lm

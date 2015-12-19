@@ -56,7 +56,7 @@ withPrevAndNext xs = NE.fromList $ zip3 prevs xs' nexts
     prevs = Nothing : map Just xs'
     nexts = map Just (NE.tail xs) ++ [Nothing]
 
-getViewNodeVersion                       :: RealmId -> Path -> RealmTree -> FileVersion
+getViewNodeVersion                       :: RealmId -> Path -> RealmTree -> FileVersion ClientId
                                          -> Handler Widget
 getViewNodeVersion ri p@(Path ps) node v = do
     lastModifiedWidget <- getLastModifiedWidget v
@@ -79,7 +79,7 @@ getViewNodeVersion ri p@(Path ps) node v = do
 
     isLatest = node^.nodeData.headVersionLens == v
 
-getLastModifiedWidget   :: FileVersion -> Handler Widget
+getLastModifiedWidget   :: FileVersion ClientId -> Handler Widget
 getLastModifiedWidget v = do
     user <- queryAcid . LookupUserById $ v^.lastModified.modUser
     let clientId     = v^.lastModified.modClient

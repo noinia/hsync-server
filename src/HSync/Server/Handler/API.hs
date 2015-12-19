@@ -93,7 +93,7 @@ deleteDeleteR _  _  NonExistent _ = reportError_ "Nothing to delete"
 deleteDeleteR cn ri fk          p = toJSON <$> lift (withClientId cn $ \ci ->
                                                  deleteFileOrDir ci ri p fk)
 
-reportError :: Text -> Either ErrorMessage FileVersion
+reportError :: Text -> Either ErrorMessage (FileVersion (Maybe ClientName))
 reportError = Left
 
 reportError_ :: Monad m => Text -> m Value

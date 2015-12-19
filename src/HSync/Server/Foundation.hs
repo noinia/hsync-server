@@ -37,7 +37,7 @@ data App = App
     , _appAcids            :: Acids
     , _appHttpManager      :: Manager
     , _appLogger           :: Logger
-    , _appNotificationChan :: TChan Notification
+    , _appNotificationChan :: TChan (Notification ClientId)
     }
 makeLenses ''App
 
@@ -282,9 +282,7 @@ instance YesodAuth App where
 
     authenticate creds = case validateUserName . credsIdent $ creds of
                            Left _   -> return $ UserError InvalidLogin
-                           Right un -> do
-                                         print un
-                                         lookupUser un
+                           Right un -> lookupUser un
 
     maybeAuthId = do
       m <- lookupSession credsKey
