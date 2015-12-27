@@ -2,14 +2,19 @@ module HSync.Server.Handler.API where
 
 import Control.Lens
 import HSync.Common.API
+import qualified HSync.Common.StorageTree as ST
 import HSync.Server.Import
 import HSync.Common.Header
+import HSync.Common.Zip
 import HSync.Server.LocalAuth(validateUser)
 import HSync.Server.Notifications
 import HSync.Server.Handler.AcidUtils
 import Data.Maybe(fromJust)
 import Data.Aeson(encode)
 import qualified Data.Conduit.List as C
+import qualified Data.Text as T
+import qualified Data.Foldable as F
+import qualified System.FilePath as FP
 
 --------------------------------------------------------------------------------
 
@@ -54,9 +59,29 @@ getCurrentRealmR ri p = do
 
 getDownloadR                  :: RealmId -> FileKind -> Path -> APIHandler TypedContent
 getDownloadR _  NonExistent _ = notFound
-getDownloadR _  Directory   _ = typedText_ ("Directory" :: Text)
-getDownloadR ri (File s)    p = getFileR ri s p
+getDownloadR ri Directory   p = lift $ queryAcid (Access ri p) >>= \case
+      Nothing   -> notFound
+      Just node -> do
+                     let ps = mapMaybe toPath . ST.flatten . current' $ node
+                     fps <- mapM getFPs ps
 
+                     addTypedHeader HFileKind Directory
+                     addHeader "Content-Disposition" $ mconcat
+                       [ "attachment; filename=\""
+                       , _unFileName $ fileNameOf p, ".zip\""
+                       ]
+
+                     respondSource typeOctet
+                       (readArchive fps $= awaitForever sendChunk)
+  where
+    -- toPath           :: _ -> Maybe (Path, Signature)
+    toPath (n,(_,x)) = (Path $ F.toList n,) <$> x^?fileKind.signature
+
+    getFPs (p',s) = (f p',) <$> getFilePath ri p' s
+
+    f (Path ps) = FP.joinPath $ map (\n -> T.unpack $ n^.unFileName) ps
+
+getDownloadR ri fk@(File s) p = addTypedHeader HFileKind fk >> getFileR ri s p
 
 getFileR        :: RealmId -> Signature -> Path -> APIHandler TypedContent
 getFileR ri s p = do
@@ -71,6 +96,9 @@ getDownloadCurrentR ri p = do
                                Just fk  -> getDownloadR ri fk p
 
 
+
+
+
 --------------------------------------------------------------------------------
 
 postCreateDirR         :: ClientName -> RealmId -> Path -> APIHandler Value
@@ -78,10 +106,12 @@ postCreateDirR cn ri p = toJSON <$> lift (withClientId cn $ \ci ->
                                            createDirectory ci ri p NonExistent)
 
 
-postStoreFileR             :: ClientName -> RealmId -> Signature -> Path
-                           -> APIHandler Value
-postStoreFileR cn ri sig p = toJSON <$> lift (withClientId cn $ \ci ->
-                                          addFile ci ri p (File sig) rawRequestBody)
+postStoreFileR                   :: ClientName -> RealmId -> FileKind -> Path
+                                 -> APIHandler Value
+postStoreFileR _  _  Directory _ = lift $
+                                   invalidArgs ["Cannot replace a directory by a file"]
+postStoreFileR cn ri fk        p = toJSON <$> lift (withClientId cn $ \ci ->
+                                     addFile ci ri p fk rawRequestBody)
 
 
 --------------------------------------------------------------------------------

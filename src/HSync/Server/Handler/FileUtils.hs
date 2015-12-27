@@ -33,8 +33,6 @@ randomFileName = replicateM randomFNameLength (randomRIO ('a','z'))
     randomFNameLength = 20
 
 
-
-
 toFilePath                      :: RealmId -> Path -> Handler FilePath
 toFilePath (RealmId i) (Path p) = f <$> getYesod
   where
@@ -42,6 +40,7 @@ toFilePath (RealmId i) (Path p) = f <$> getYesod
     f y = FP.joinPath $ [ y^.appSettings.filesPath
                         , show i
                         ] ++ p'
+
 
 -- | Get the path where a file is stored
 getFilePath        :: RealmId -> Path -> Signature -> Handler FilePath
