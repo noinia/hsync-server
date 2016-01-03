@@ -30,15 +30,16 @@ printNotificationSink ls = awaitForever $ printNotification
 
 -- | Get a stream of notifications in the Handler monad
 notifications :: Handler (Source Handler PublicNotification)
-notifications = getYesod >>= (fmap withClientNames . notifications')
+notifications = getYesod >>= notifications'
+                --(fmap withClientNames . notifications')
 
 
 -- | lookup the client names in this stream of notifications.
 withClientNames    :: Source Handler (Notification ClientId)
-                   -> Source Handler PublicNotification
+                   -> Source Handler NamedNotification
 withClientNames s  = s =$= CL.mapM withClientName
 
-withClientName   :: Notification ClientId -> Handler PublicNotification
+withClientName   :: Notification ClientId -> Handler NamedNotification
 withClientName n = Notification <$> setE (n^.event)
   where
 
@@ -69,7 +70,7 @@ notificationsAsOf        :: DateTime -> RealmId -> Path
                          -> Handler (Source Handler PublicNotification)
 notificationsAsOf dt ri p = do
                               newNots <- notificationsFor ri p
-                              oldNots <- withClientNames <$> loadNotificationsAsOf dt ri p
+                              oldNots <- loadNotificationsAsOf dt ri p
                               return $ oldNots `concatSources` newNots
 
 -- | Get a stream of notifications

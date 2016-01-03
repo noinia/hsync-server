@@ -21,15 +21,15 @@ addFile ci ri p currentKind s = do
       Right lm -> updateAcidAndLog $ AddFile ri p currentKind lm True sig
 
 
-updateAcidAndLog       :: ( UpdateEvent event
-                          , EventResult event ~ Either l (Notification ClientId)
-                          , HasAcidState Handler (EventState event)
-                          )
-                       => event -> Handler (Either l PublicNotification)
-updateAcidAndLog event = do
-                       n <- updateAcid event
-                       mapM_ logNotification n
-                       mapM  withClientName n
+updateAcidAndLog     :: ( UpdateEvent event
+                        , EventResult event ~ Either l (Notification ClientId)
+                        , HasAcidState Handler (EventState event)
+                        ) => event -> Handler (Either l PublicNotification)
+updateAcidAndLog evt = do
+                         n <- updateAcid evt
+                         mapM_ logNotification n
+                         pure n
+                         -- mapM  withClientName n
 
 getLastModified    :: ClientId -> Handler (Either ErrorMessage (LastModified ClientId))
 getLastModified ci = do
